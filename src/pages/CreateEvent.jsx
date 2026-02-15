@@ -10,7 +10,7 @@ import TimeIcon from "../images/time.svg";
 import FileIcon from "../images/file.svg";
 import DateIcon from "../images/date.svg";
 
-// 🔹 Reusable Modal Component with Smooth Animations
+// Reusable Modal Component with Smooth Animations
 function ConfirmationModal({ title, message, onConfirm, onCancel, type = "confirm" }) {
   useEffect(() => {
     const handleEscapeKey = (event) => {
@@ -35,13 +35,12 @@ function ConfirmationModal({ title, message, onConfirm, onCancel, type = "confir
       onCancel();
     }
   };
-
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center z-[9999] animate-fadeIn"
       onClick={handleBackdropClick}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
       <div
         className="relative rounded-lg shadow-2xl p-6 w-96 text-center z-[10000] border-4 border-emerald-800 transform animate-scaleIn"
         style={{ backgroundColor: "#fade97" }}
@@ -79,12 +78,87 @@ function ConfirmationModal({ title, message, onConfirm, onCancel, type = "confir
   );
 }
 
+// 🔹 Event Type Modal Component 
+function EventTypeModal({ onSelect, onCancel }) {
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === "Escape") {
+        onCancel();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => document.removeEventListener("keydown", handleEscapeKey);
+  }, [onCancel]);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onCancel();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[9999] animate-fadeIn"
+      onClick={handleBackdropClick}
+    >
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+      <div
+        className="relative rounded-lg shadow-2xl p-8 w-1/2 text-center z-[10000] border-4 border-emerald-800 transform animate-scaleIn"
+        style={{ backgroundColor: "#fade97" }}
+      >
+        <h2 className="text-2xl font-bold text-emerald-800 mb-3">Select Event Type</h2>
+        <p className="text-gray-700 mb-8 text-sm">Choose the type of event you want to create</p>
+
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={() => onSelect('single')}
+            className="bg-emerald-700 text-white px-8 py-4 rounded-lg hover:bg-emerald-900 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer font-semibold text-lg"
+          >
+            Single Event
+          </button>
+          <button
+            onClick={() => onSelect('multiple')}
+            className="bg-emerald-600 text-white px-8 py-4 rounded-lg hover:bg-emerald-800 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer font-semibold text-lg"
+          >
+            Multiple Event
+          </button>
+        </div>
+
+        <button
+          onClick={onCancel}
+          className="mt-6 text-gray-600 hover:text-gray-800 transition-all duration-200 cursor-pointer text-sm underline"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CreateEvent() {
   const navigate = useNavigate();
   const [adminData, setAdminData] = useState(null);
   const [ngoCode, setNgoCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [imageOrientation, setImageOrientation] = useState("");
+
+  const handleImageLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.target;
+    if (naturalHeight > naturalWidth) {
+      setImageOrientation("portrait");
+    } else {
+      setImageOrientation("landscape");
+    }
+  };
 
   // Wizard step state
   const [currentStep, setCurrentStep] = useState(1);
@@ -92,6 +166,8 @@ function CreateEvent() {
   // Form states (Page 1 - Event Details)
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [eventStartDate, setEventStartDate] = useState("");
+  const [eventEndDate, setEventEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -108,17 +184,28 @@ function CreateEvent() {
   const [preferredSkills, setPreferredSkills] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [eventType, setEventType] = useState('single');
-  const [eventEndDate, setEventEndDate] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     localStorage.getItem("sidebarCollapsed") === "true" || false
   );
-  
-  // Form states (Page 2 - Completion Tasks) - Fixed 3 tasks
+  // Add after const [sidebarCollapsed, setSidebarCollapsed] = useState...
+  const [eventType, setEventType] = useState(null); // 'single' or 'multiple'
+  const [showEventTypeModal, setShowEventTypeModal] = useState(true);
+  const [dynamicTasks, setDynamicTasks] = useState([
+    {
+      id: 1,
+      taskName: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+      startTime: "",
+      endTime: ""
+    }
+  ]);
+
   const [completionTasks, setCompletionTasks] = useState([
-    { id: 1, description: ""},
-    { id: 2, description: ""},
-    { id: 3, description: ""}
+    { id: 1, description: "" },
+    { id: 2, description: "" },
+    { id: 3, description: "" }
   ]);
 
   // Modal states
@@ -137,21 +224,21 @@ function CreateEvent() {
   ];
 
   const skillOptions = [
-  "Event Planning & Coordination",
-  "Manual Labor & Construction",
-  "Teaching & Tutoring",
-  "Medical & Healthcare",
-  "Graphic Design & Photography",
-  "Writing & Content Creation",
-  "Counseling & Mentoring",
-  "Fundraising & Grant Writing",
-  "Cooking & Food Service"
-];
+    "Event Planning & Coordination",
+    "Manual Labor & Construction",
+    "Teaching & Tutoring",
+    "Medical & Healthcare",
+    "Graphic Design & Photography",
+    "Writing & Content Creation",
+    "Counseling & Mentoring",
+    "Fundraising & Grant Writing",
+    "Cooking & Food Service"
+  ];
 
   // Supported image formats
   const supportedImageTypes = [
     'image/jpeg',
-    'image/jpg', 
+    'image/jpg',
     'image/png',
     'image/gif',
     'image/webp',
@@ -171,7 +258,7 @@ function CreateEvent() {
 
     // Load Google Maps API
     const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-    
+
     // Load Google Maps API
     if (!window.google) {
       const script = document.createElement('script');
@@ -203,7 +290,7 @@ function CreateEvent() {
   // Handle place selection
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current.getPlace();
-    
+
     if (place.geometry) {
       setLocation(place.formatted_address || place.name);
       setLocationDetails({
@@ -304,145 +391,322 @@ function CreateEvent() {
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = '';
   };
-  // Clear all form data
-const clearAllFields = () => {
-  setEventTitle("");
-  setEventDate("");
-  setEventEndDate("");
-  setStartTime("");
-  setEndTime("");
-  setEventDescription("");
-  setEventObjectives("");
-  setLocation("");
-  setLocationDetails(null);
-  setVolunteersLimit("");
-  setCallTime("");
-  setEventTasks("");
-  setVolunteerGuidelines("");
-  setVolunteerOpportunities([]);
-  setPreferredSkills([]);
-  setSelectedFile(null);
-  setImagePreview(null);
-  setEventType('single');
-  setCompletionTasks([
-    { id: 1, description: ""},
-    { id: 2, description: ""},
-    { id: 3, description: ""}
-  ]);
-  setCurrentStep(1);
-  
-  // Reset file input
-  const fileInput = document.querySelector('input[type="file"]');
-  if (fileInput) fileInput.value = '';
+
+  const validatePage1 = () => {
+  // Check for missing basic fields first
+  if (!eventTitle.trim()) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide an Event Title.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  // Validate date based on event type
+  if (eventType === 'single') {
+    if (!eventDate) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please select an Event Date.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
+  } else if (eventType === 'multiple') {
+    if (!eventStartDate || !eventEndDate) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide event start and end dates.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
+
+    const start = new Date(eventStartDate);
+    const end = new Date(eventEndDate);
+    if (end < start) {
+      setModalConfig({
+        title: "Invalid Date Range",
+        message: "Event end date must be after start date.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
+  }
+
+  if (!startTime) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please select a Start Time.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!endTime) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please select an End Time.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!eventDescription.trim()) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide an Event Description.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!eventObjectives.trim()) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide Event Objectives.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!location.trim()) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide a Location.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!volunteersLimit || volunteersLimit <= 0) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide a valid Volunteers Limit.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!callTime) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please select a Call Time.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!eventTasks.trim()) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide Event Tasks (What to Expect).",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!volunteerGuidelines.trim()) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please provide Volunteer Guidelines.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (volunteerOpportunities.length === 0) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please select at least one Volunteer Opportunity.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (preferredSkills.length === 0) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please select at least one Preferred Skill.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (!selectedFile) {
+    setModalConfig({
+      title: "Incomplete",
+      message: "Please upload an Event Poster/Image.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  // Validate date is not in the past
+  const dateToCheck = eventType === 'single' ? eventDate : eventStartDate;
+  const selectedDate = new Date(dateToCheck);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedDate < today) {
+    setModalConfig({
+      title: "Invalid Date",
+      message: "Event date cannot be in the past.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  // Validate time logic
+  const start = new Date(`1970-01-01T${convertTo24Hour(startTime)}`);
+  const end = new Date(`1970-01-01T${convertTo24Hour(endTime)}`);
+  const call = new Date(`1970-01-01T${convertTo24Hour(callTime)}`);
+
+  if (start >= end) {
+    setModalConfig({
+      title: "Invalid Time",
+      message: "End time must be after start time.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  if (call > start) {
+    setModalConfig({
+      title: "Invalid Call Time",
+      message: "Call time must be before or equal to start time.",
+      onCancel: () => setModalConfig(null),
+      type: "alert",
+    });
+    return false;
+  }
+
+  return true;
 };
 
-  // Validate Page 1 (Event Details)
-  const validatePage1 = () => {
-    const missingFields = [];
-    if (!eventTitle.trim()) missingFields.push("Event Title");
-    if (!eventDate) missingFields.push("Event Date");
-    if (eventType === 'multiple' && !eventEndDate) missingFields.push("Event End Date");
-    
-    // Validate end date is after start date for multiple day events
-    if (eventType === 'multiple' && eventDate && eventEndDate) {
-      const startDate = new Date(eventDate);
-      const endDate = new Date(eventEndDate);
-      
-      if (endDate < startDate) {
+  // Validate Page 2 (Completion Tasks)
+  const validatePage2 = () => {
+    const tasksToValidate = eventType === 'multiple' ? dynamicTasks : completionTasks;
+
+    if (eventType === 'multiple') {
+      // Validate each task has all required fields
+      for (let task of tasksToValidate) {
+        if (!task.taskName.trim()) {
+          setModalConfig({
+            title: "Incomplete Tasks",
+            message: "Please provide a task name for all tasks.",
+            onCancel: () => setModalConfig(null),
+            type: "alert",
+          });
+          return false;
+        }
+        if (!task.description.trim()) {
+          setModalConfig({
+            title: "Incomplete Tasks",
+            message: "Please fill in all task descriptions.",
+            onCancel: () => setModalConfig(null),
+            type: "alert",
+          });
+          return false;
+        }
+        if (!task.startDate || !task.endDate) {
+          setModalConfig({
+            title: "Incomplete Tasks",
+            message: "Please provide start and end dates for all tasks.",
+            onCancel: () => setModalConfig(null),
+            type: "alert",
+          });
+          return false;
+        }
+        if (!task.startTime || !task.endTime) {
+          setModalConfig({
+            title: "Incomplete Tasks",
+            message: "Please provide start and end times for all tasks.",
+            onCancel: () => setModalConfig(null),
+            type: "alert",
+          });
+          return false;
+        }
+
+        // Validate date range
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        if (taskEnd < taskStart) {
+          setModalConfig({
+            title: "Invalid Date Range",
+            message: `Task "${task.taskName}" end date must be after start date.`,
+            onCancel: () => setModalConfig(null),
+            type: "alert",
+          });
+          return false;
+        }
+      }
+    } else {
+      const emptyTasks = tasksToValidate.filter(task => !task.description.trim());
+      if (emptyTasks.length > 0) {
         setModalConfig({
-          title: "Invalid Date Range",
-          message: "Event end date must be after or equal to start date.",
+          title: "Incomplete Tasks",
+          message: "Please fill in all task descriptions before proceeding.",
           onCancel: () => setModalConfig(null),
           type: "alert",
         });
         return false;
       }
     }
-    if (!startTime) missingFields.push("Start Time");
-    if (!endTime) missingFields.push("End Time");
-    if (!eventDescription.trim()) missingFields.push("Event Description");
-    if (!eventObjectives.trim()) missingFields.push("Event Objectives");
-    if (!location.trim()) missingFields.push("Location");
-    if (!volunteersLimit || volunteersLimit <= 0) missingFields.push("Valid Volunteers Limit");
-    if (!callTime) missingFields.push("Call Time");
-    if (!eventTasks.trim()) missingFields.push("Event Tasks (What to Expect)");
-    if (!volunteerGuidelines.trim()) missingFields.push("Volunteer Guidelines");
-    if (volunteerOpportunities.length === 0) missingFields.push("At least one Volunteer Opportunity");
-
-    if (missingFields.length > 0) {
-      setModalConfig({
-        title: "Incomplete",
-        message: "Please complete all required fields first.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
-
-    if (preferredSkills.length === 0) missingFields.push("At least one Preferred Skill");
-
-    // Validate date is not in the past
-    const selectedDate = new Date(eventDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-      setModalConfig({
-        title: "Invalid Date",
-        message: "Event date cannot be in the past.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
-
-    // Validate time logic
-    const start = new Date(`1970-01-01T${convertTo24Hour(startTime)}`);
-    const end = new Date(`1970-01-01T${convertTo24Hour(endTime)}`);
-    const call = new Date(`1970-01-01T${convertTo24Hour(callTime)}`);
-
-    if (start >= end) {
-      setModalConfig({
-        title: "Invalid Time",
-        message: "End time must be after start time.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
-    if (call > start) {
-      setModalConfig({
-        title: "Invalid Call Time",
-        message: "Call time must be before or equal to start time.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  // Validate Page 2 (Completion Tasks)
-  const validatePage2 = () => {
-    const emptyTasks = completionTasks.filter(task => !task.description.trim());
-    if (emptyTasks.length > 0) {
-      setModalConfig({
-        title: "Incomplete Tasks",
-        message: "Please fill in all task descriptions before proceeding.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
     return true;
   };
 
   // Handle completion task change - only description field
   const handleTaskChange = (id, value) => {
-    setCompletionTasks(prev => 
-      prev.map(task => 
+    setCompletionTasks(prev =>
+      prev.map(task =>
         task.id === id ? { ...task, description: value } : task
+      )
+    );
+  };
+  // Add after handleTaskChange function
+  const addDynamicTask = () => {
+    const newId = Math.max(...dynamicTasks.map(t => t.id), 0) + 1;
+    setDynamicTasks(prev => [...prev, {
+      id: newId,
+      taskName: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+      startTime: "",
+      endTime: ""
+    }]);
+  };
+
+  const removeDynamicTask = (id) => {
+    if (dynamicTasks.length > 1) {
+      setDynamicTasks(prev => prev.filter(task => task.id !== id));
+    }
+  };
+
+  const handleDynamicTaskChange = (id, field, value) => {
+    setDynamicTasks(prev =>
+      prev.map(task =>
+        task.id === id ? { ...task, [field]: value } : task
       )
     );
   };
@@ -525,7 +789,7 @@ const clearAllFields = () => {
               ...uploadOptions,
               upsert: true
             });
-          
+
           if (retryError) {
             throw retryError;
           }
@@ -546,7 +810,7 @@ const clearAllFields = () => {
 
     } catch (error) {
       console.error("Error uploading image:", error);
-      
+
       if (error.message.includes('row_level_security')) {
         setModalConfig({
           title: "Storage Permission Error",
@@ -562,7 +826,7 @@ const clearAllFields = () => {
           type: "alert",
         });
       }
-      
+
       return null;
     } finally {
       setImageUploading(false);
@@ -572,15 +836,15 @@ const clearAllFields = () => {
   // Create task report entry - only use description fields
   const createTaskReport = async (eventId, taskId) => {
     try {
-      // Prepare task data with only description fields
       const taskData = {
         task_id: taskId,
         event_id: eventId,
         ngo_id: ngoCode,
       };
 
-      // Assign descriptions to specific fields
-      completionTasks.forEach((task, index) => {
+      const tasksToUse = eventType === 'multiple' ? dynamicTasks : completionTasks;
+
+      tasksToUse.forEach((task, index) => {
         if (index === 0) {
           taskData.description_one = task.description;
         } else if (index === 1) {
@@ -603,6 +867,8 @@ const clearAllFields = () => {
     }
   };
 
+
+
   // Create event in database
   const publishEvent = async () => {
     setLoading(true);
@@ -624,9 +890,8 @@ const clearAllFields = () => {
         event_id: eventId,
         ngo_id: ngoCode,
         event_title: eventTitle.trim(),
-        date: eventDate,
         event_type: eventType,
-        event_end_date: eventType === 'multiple' ? eventEndDate : null,
+        date: eventDate,
         time_start: convertTo24Hour(startTime),
         time_end: convertTo24Hour(endTime),
         description: eventDescription.trim(),
@@ -654,7 +919,7 @@ const clearAllFields = () => {
 
       // Then create task report
       await createTaskReport(eventId, taskId);
-      
+
       setModalConfig({
         title: "Success",
         message: "Event and completion tasks published successfully!",
@@ -664,7 +929,7 @@ const clearAllFields = () => {
         },
         type: "alert",
       });
-      
+
     } catch (error) {
       console.error("Error creating event:", error);
       setModalConfig({
@@ -690,14 +955,14 @@ const clearAllFields = () => {
   };
 
   const handleSkillChange = (skill) => {
-  setPreferredSkills(prev => {
-    if (prev.includes(skill)) {
-      return prev.filter(item => item !== skill);
-    } else {
-      return [...prev, skill];
-    }
-  });
-};
+    setPreferredSkills(prev => {
+      if (prev.includes(skill)) {
+        return prev.filter(item => item !== skill);
+      } else {
+        return [...prev, skill];
+      }
+    });
+  };
 
   // Generate time options
   const generateTimeOptions = () => {
@@ -750,151 +1015,133 @@ const clearAllFields = () => {
         />
       </div>
 
-     {/* Date & Time Container */}
-      <div className="w-full mb-6">
-        {/* Event Type Selection - Single Line */}
-        <label className="block font-semibold text-lg text-emerald-800 mb-2">
-          Event Type <span className="text-red-600">*</span>
-        </label>
-        
-        <div className="flex gap-3 mb-4">
-          {/* Single Day Event Option */}
-          <label className={`flex-1 flex items-center cursor-pointer bg-white border-2 rounded-lg px-3 py-2 transition-all ${
-            eventType === 'single' 
-              ? 'border-emerald-600 bg-emerald-50' 
-              : 'border-gray-300 hover:border-emerald-400'
-          }`}>
-            <input
-              type="radio"
-              name="eventType"
-              value="single"
-              checked={eventType === 'single'}
-              onChange={(e) => {
-                setEventType(e.target.value);
-                setEventEndDate("");
-              }}
-              className="mr-2 w-4 h-4 accent-emerald-700 flex-shrink-0"
-            />
-            <div className="flex-1">
-              <span className="font-semibold text-gray-800 text-sm block">Single Day Event</span>
-              <p className="text-xs text-gray-600">One day only</p>
+      {/* Date & Time Container */}
+      {eventType === 'single' ? (
+        // Single Event - Original Date & Time
+        <div className="w-full flex flex-wrap gap-6 mb-6">
+          <div className="flex-1 min-w-[250px]">
+            <label className="block font-semibold text-lg text-emerald-800 mb-1">
+              Date  <span className="text-red-600">*</span>
+            </label>
+            <div className="flex items-center border bg-white border-gray-300 rounded px-4 py-2">
+              <img src={DateIcon} alt="Date" className="w-5 h-5 mr-2" />
+              <input
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent"
+              />
             </div>
-          </label>
+          </div>
 
-          {/* Multiple Day Event Option */}
-          <label className={`flex-1 flex items-center cursor-pointer bg-white border-2 rounded-lg px-3 py-2 transition-all ${
-            eventType === 'multiple' 
-              ? 'border-emerald-600 bg-emerald-50' 
-              : 'border-gray-300 hover:border-emerald-400'
-          }`}>
-            <input
-              type="radio"
-              name="eventType"
-              value="multiple"
-              checked={eventType === 'multiple'}
-              onChange={(e) => setEventType(e.target.value)}
-              className="mr-2 w-4 h-4 accent-emerald-700 flex-shrink-0"
-            />
-            <div className="flex-1">
-              <span className="font-semibold text-gray-800 text-sm block">Multiple Day Event</span>
-              <p className="text-xs text-gray-600">Spans multiple days</p>
+          <div className="flex-1 min-w-[200px]">
+            <label className="block font-semibold text-lg text-emerald-800 mb-1">
+              Time <span className="text-red-600">*</span>
+            </label>
+            <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3">
+              <img src={TimeIcon} alt="Time" className="w-5 h-5 mr-2" />
+              <select
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700"
+              >
+                <option value="">Start Time</option>
+                {timeOptions.map((time) => (
+                  <option key={`start-${time.value}`} value={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-1/2 p-2 focus:outline-none cursor-pointer"
+              >
+                <option value="">End Time</option>
+                {timeOptions.map((time) => (
+                  <option key={`end-${time.value}`} value={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          </label>
+          </div>
         </div>
-
-        {/* Date Fields - Show based on event type */}
-        <div className="animate-slideDown mb-4">
-          {eventType === 'single' ? (
-            // Single Day Date Field
+      ) : (
+        // Multiple Event - Date Range & Time 
+        <div className="w-full mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Event Date Range */}
             <div>
-              <label className="block font-semibold text-sm text-emerald-800 mb-1">
-                Event Date <span className="text-red-600">*</span>
-              </label>
-              <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2">
-                <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
-                <input
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
-                />
-              </div>
-            </div>
-          ) : (
-            // Multiple Day Date Fields - One Line
-            <div>
-              <label className="block font-semibold text-sm text-emerald-800 mb-1">
+              <label className="block font-semibold text-lg text-emerald-800 mb-1">
                 Event Duration <span className="text-red-600">*</span>
               </label>
-              <div className="flex gap-3">
-                <div className="flex-1 flex items-center border bg-white border-gray-300 rounded px-3 py-2">
-                  <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
+                  <img src={DateIcon} alt="Date" className="w-5 h-5 mr-2" />
                   <input
                     type="date"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
+                    value={eventStartDate}
+                    onChange={(e) => setEventStartDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    placeholder="Start Date"
                     className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
+                    placeholder="Start Date"
                   />
                 </div>
-                
-               <div className="flex-1 flex items-center border bg-white border-gray-300 rounded px-3 py-2">
-                  <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
+                <span className="text-gray-600 font-semibold">to</span>
+                <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
+                  <img src={DateIcon} alt="Date" className="w-5 h-5 mr-2" />
                   <input
                     type="date"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    placeholder="End Date"
+                    value={eventEndDate}
+                    onChange={(e) => setEventEndDate(e.target.value)}
+                    min={eventStartDate || new Date().toISOString().split('T')[0]}
                     className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
+                    placeholder="End Date"
                   />
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Event Time - Always visible */}
-        <div>
-          <label className="block font-semibold text-sm text-emerald-800 mb-1">
-            {eventType === 'multiple' ? 'Daily Event Time' : 'Event Time'} <span className="text-red-600">*</span>
-          </label>
-          <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
-            <img src={TimeIcon} alt="Time" className="w-4 h-4" />
-            <select
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="flex-1 p-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
-            >
-              <option value="">Start Time</option>
-              {timeOptions.map((time) => (
-                <option key={`start-${time.value}`} value={time.value}>
-                  {time.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="flex-1 p-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
-            >
-              <option value="">End Time</option>
-              {timeOptions.map((time) => (
-                <option key={`end-${time.value}`} value={time.value}>
-                  {time.label}
-                </option>
-              ))}
-            </select>
+            {/* Event Time */}
+            <div>
+              <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                Event Time <span className="text-red-600">*</span>
+              </label>
+              <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 gap-2">
+                <img src={TimeIcon} alt="Time" className="w-5 h-5 mr-2" />
+                <select
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm py-2"
+                >
+                  <option value="">Start Time</option>
+                  {timeOptions.map((time) => (
+                    <option key={`start-${time.value}`} value={time.value}>
+                      {time.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-gray-600">-</span>
+                <select
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm py-2"
+                >
+                  <option value="">End Time</option>
+                  {timeOptions.map((time) => (
+                    <option key={`end-${time.value}`} value={time.value}>
+                      {time.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-          {eventType === 'multiple' && (
-            <p className="text-xs text-emerald-700 mt-1">
-            </p>
-          )}
         </div>
-      </div>
-      
+      )}
+
       {/* Location with Google Maps Autocomplete */}
       <div className="mb-4">
         <label className="block font-semibold text-lg text-green-800 mb-1">
@@ -949,9 +1196,10 @@ const clearAllFields = () => {
         </p>
       </div>
 
-      {/* Volunteers Limit and Call Time */}
-      <div className="w-full flex flex-wrap gap-6 mb-3">
-        <div className="flex-1 min-w-[250px]">
+      {/* Volunteers Limit & Call Time - Side by side */}
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Volunteers Limit */}
+        <div className="flex flex-col">
           <label className="block font-semibold text-lg text-emerald-800 mb-1">
             Volunteers Limit <span className="text-red-600">*</span>
           </label>
@@ -961,12 +1209,13 @@ const clearAllFields = () => {
             value={volunteersLimit}
             onChange={(e) => setVolunteersLimit(e.target.value)}
             min="1"
-        className="w-full border border-gray-300 focus:outline-none rounded-lg mb-2 cursor-pointer px-4 py-2 bg-white text-gray-700"
+            className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 py-2 bg-white text-gray-700"
           />
         </div>
 
-  <div className="flex-1 min-w-[250px]">
-          <label className="block font-semibold text-lg text-emerald-800 mb-2">
+        {/* Call Time */}
+        <div className="flex flex-col">
+          <label className="block font-semibold text-lg text-emerald-800 mb-1">
             Call Time <span className="text-red-600">*</span>
           </label>
           <div className="flex items-center border bg-white border-gray-300 rounded px-4 py-2">
@@ -1021,375 +1270,547 @@ const clearAllFields = () => {
         </p>
       </div>
 
-     {/* Upload Poster, Volunteer Opportunities & Preferred Skills - 3 columns */}
-<div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-  {/* Upload Event Poster */}
-  <div className="flex flex-col">
-    <label className="block font-semibold text-lg text-emerald-800 mb-1">
-      Upload Event Poster/Image <span className="text-red-600">*</span>
-    </label>
-    <div className="flex items-center border bg-white border-gray-300 rounded px-3">
-      <img src={FileIcon} alt="Upload" className="w-5 h-5 mr-2" />
-      <input
-        type="file"
-        accept={supportedImageTypes.join(',')}
-        onChange={handleFileSelect}
-        className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-      />
-    </div>
-    <p className="text-xs text-emerald-700 mt-1">
-      Supported formats: {supportedExtensions.join(', ')}. Max size: 10MB.
-    </p>
-    
-    {imagePreview && (
-      <div className="mt-2">
-        <img 
-          src={imagePreview} 
-          alt="Preview" 
-          className="max-w-full h-32 object-cover rounded border"
-        />
-        <button
-          type="button"
-          onClick={removeSelectedFile}
-          className="mt-2 text-red-600 hover:text-red-800 text-xs font-medium block cursor-pointer"
-        >
-          Remove Image
-        </button>
-      </div>
-    )}
-    
-    {selectedFile && !imagePreview && (
-      <div className="mt-2 p-2 bg-emerald-100 rounded text-sm text-emerald-800">
-        <p>File selected: {selectedFile.name}</p>
-        <button
-          type="button"
-          onClick={removeSelectedFile}
-          className="mt-1 text-red-600 hover:text-red-800 text-xs font-medium cursor-pointer"
-        >
-          Remove File
-        </button>
-      </div>
-    )}
-  </div>
-
-  {/* Volunteer Opportunities */}
-  <div className="flex flex-col">
-    <label className="block font-semibold text-lg text-emerald-800 mb-1">
-      Volunteer Opportunities <span className="text-red-600">*</span>
-    </label>
-    <div className="border bg-white border-gray-300 rounded p-3 flex-1 flex flex-col max-h-[280px]">
-      <div className="flex items-center mb-2">
-        <img
-          src={OpportunitiesIcon}
-          alt="Opportunities"
-          className="w-5 h-5 mr-2"
-        />
-        <span className="text-sm font-medium">Select all that apply:</span>
-      </div>
-      <div className="grid grid-cols-1 gap-2 overflow-y-auto flex-1 pr-1">
-        {opportunityOptions.map((option) => (
-          <label key={option} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 p-2 rounded transition-colors">
-            <div className="relative flex items-center w-full">
-              <input
-                type="checkbox"
-                checked={volunteerOpportunities.includes(option)}
-                onChange={() => handleOpportunityChange(option)}
-                className="sr-only"
-              />
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
-                volunteerOpportunities.includes(option) 
-                  ? 'bg-emerald-600 border-emerald-600' 
-                  : 'border-gray-300 group-hover:border-emerald-400'
-              }`}>
-                {volunteerOpportunities.includes(option) && (
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                  </svg>
-                )}
-              </div>
-              <span className={`ml-3 group-hover:text-emerald-800 transition-all duration-200 ${
-                volunteerOpportunities.includes(option) 
-                  ? 'text-emerald-800 font-bold' 
-                  : 'text-gray-700 font-normal'
-              }`}>
-                {option}
-              </span>
-            </div>
+      {/* Upload Poster, Volunteer Opportunities & Preferred Skills - 3 columns */}
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Upload Event Poster */}
+        <div className="flex flex-col">
+          <label className="block font-semibold text-lg text-emerald-800 mb-1">
+            Upload Event Poster/Image <span className="text-red-600">*</span>
           </label>
-        ))}
-      </div>
-    </div>
-  </div>
+          <div className="flex items-center border bg-white border-gray-300 rounded px-3">
+            <img src={FileIcon} alt="Upload" className="w-5 h-5 mr-2" />
+            <input
+              type="file"
+              accept={supportedImageTypes.join(',')}
+              onChange={handleFileSelect}
+              className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <p className="text-xs text-emerald-700 mt-1">
+            Supported formats: {supportedExtensions.join(', ')}. Max size: 10MB.
+          </p>
 
-  {/* Preferred Skills */}
-  <div className="flex flex-col">
-    <label className="block font-semibold text-lg text-emerald-800 mb-1">
-      Preferred Skills <span className="text-red-600">*</span>
-    </label>
-    <div className="border bg-white border-gray-300 rounded p-3 flex-1 flex flex-col max-h-[280px]">
-      <div className="flex items-center mb-2">
-        <img
-          src={OpportunitiesIcon}
-          alt="Skills"
-          className="w-5 h-5 mr-2"
-        />
-        <span className="text-sm font-medium">Select all that apply:</span>
-      </div>
-      <div className="grid grid-cols-1 gap-2 overflow-y-auto flex-1 pr-1">
-        {skillOptions.map((skill) => (
-          <label key={skill} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 p-2 rounded transition-colors">
-            <div className="relative flex items-center w-full">
-              <input
-                type="checkbox"
-                checked={preferredSkills.includes(skill)}
-                onChange={() => handleSkillChange(skill)}
-                className="sr-only"
+          {imagePreview && (
+            <div className="mt-2">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-w-full h-32 object-cover rounded border"
               />
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
-                preferredSkills.includes(skill) 
-                  ? 'bg-emerald-600 border-emerald-600' 
-                  : 'border-gray-300 group-hover:border-emerald-400'
-              }`}>
-                {preferredSkills.includes(skill) && (
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                  </svg>
-                )}
-              </div>
-              <span className={`ml-3 group-hover:text-emerald-800 transition-all duration-200 ${
-                preferredSkills.includes(skill) 
-                  ? 'text-emerald-800 font-bold' 
-                  : 'text-gray-700 font-normal'
-              }`}>
-                {skill}
-              </span>
+              <button
+                type="button"
+                onClick={removeSelectedFile}
+                className="mt-2 text-red-600 hover:text-red-800 text-xs font-medium block cursor-pointer"
+              >
+                Remove Image
+              </button>
             </div>
+          )}
+
+          {selectedFile && !imagePreview && (
+            <div className="mt-2 p-2 bg-emerald-100 rounded text-sm text-emerald-800">
+              <p>File selected: {selectedFile.name}</p>
+              <button
+                type="button"
+                onClick={removeSelectedFile}
+                className="mt-1 text-red-600 hover:text-red-800 text-xs font-medium cursor-pointer"
+              >
+                Remove File
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Volunteer Opportunities */}
+        <div className="flex flex-col">
+          <label className="block font-semibold text-lg text-emerald-800 mb-1">
+            Volunteer Opportunities <span className="text-red-600">*</span>
           </label>
-        ))}
-      </div>
-    </div>
-  </div>
-</div>
-
-      {/* Step 1 Buttons */}
-<div className="flex justify-between">
-  <div className="flex gap-3">
-    <button
-      onClick={() => setModalConfig({
-        title: "Close",
-        message: "Are you sure you want to close? All progress will be lost.",
-        onConfirm: () => {
-          setModalConfig(null);
-          navigate("/dashboard");
-        },
-        onCancel: () => setModalConfig(null),
-      })}
-      className="bg-gray-500 text-white px-6 py-2 rounded-full hover:bg-gray-600 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
-    >
-      Close
-    </button>
-    <button
-      onClick={() => setModalConfig({
-        title: "Clear All",
-        message: "Are you sure you want to clear all fields? All entered information will be lost.",
-        onConfirm: () => {
-          setModalConfig(null);
-          clearAllFields();
-        },
-        onCancel: () => setModalConfig(null),
-      })}
-      className="bg-amber-300 text-white px-6 py-2 rounded-full hover:bg-yellow-600 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
-    >
-      Clear
-    </button>
-  </div>
-  <button
-    onClick={goToStep2}
-    className="bg-emerald-700 text-white px-6 py-2 rounded-full hover:bg-emerald-900 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
-  >
-    Next
-  </button>
-</div>
-    </div>
-  );
-
-  // Render Step 2 - Completion Tasks (Simple design with 3 fixed tasks)
-  const renderStep2 = () => (
-    <div
-      className="rounded-lg shadow-xl p-6 w-full border-4 border-emerald-800"
-      style={{ backgroundColor: "#fade97" }}
-    >
-      <h3 className="text-xl font-bold text-emerald-800 mb-4">Step 2: Completion Tasks</h3>
-      
-      <p className="text-emerald-700 mb-6">
-        Define three tasks that need to be completed for this event. These will be used to track event progress.
-      </p>
-
-      <div className="space-y-4 mb-6">
-        {completionTasks.map((task, index) => (
-          <div key={task.id} className="bg-white rounded-lg border border-emerald-300 p-4">
-            <div className="mb-3">
-              <label className="block font-semibold text-lg text-emerald-800 mb-2">
-                Task {index + 1} <span className="text-red-600">*</span>
-              </label>
-              <textarea
-                placeholder="Enter task description..."
-                value={task.description}
-                onChange={(e) => handleTaskChange(task.id, e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 resize-none"
-                rows={3}
+          <div className="border bg-white border-gray-300 rounded p-3 flex-1 flex flex-col max-h-[280px]">
+            <div className="flex items-center mb-2">
+              <img
+                src={OpportunitiesIcon}
+                alt="Opportunities"
+                className="w-5 h-5 mr-2"
               />
-              <p className="text-sm text-emerald-600 mt-1">
-                Separate multiple task points with dashes (-). Example: Setup materials-Assign roles-Monitor progress
-              </p>
+              <span className="text-sm font-medium">Select all that apply:</span>
+            </div>
+            <div className="grid grid-cols-1 gap-2 overflow-y-auto flex-1 pr-1">
+              {opportunityOptions.map((option) => (
+                <label key={option} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 p-2 rounded transition-colors">
+                  <div className="relative flex items-center w-full">
+                    <input
+                      type="checkbox"
+                      checked={volunteerOpportunities.includes(option)}
+                      onChange={() => handleOpportunityChange(option)}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${volunteerOpportunities.includes(option)
+                        ? 'bg-emerald-600 border-emerald-600'
+                        : 'border-gray-300 group-hover:border-emerald-400'
+                      }`}>
+                      {volunteerOpportunities.includes(option) && (
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`ml-3 group-hover:text-emerald-800 transition-all duration-200 ${volunteerOpportunities.includes(option)
+                        ? 'text-emerald-800 font-bold'
+                        : 'text-gray-700 font-normal'
+                      }`}>
+                      {option}
+                    </span>
+                  </div>
+                </label>
+              ))}
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Preferred Skills */}
+        <div className="flex flex-col">
+          <label className="block font-semibold text-lg text-emerald-800 mb-1">
+            Preferred Skills <span className="text-red-600">*</span>
+          </label>
+          <div className="border bg-white border-gray-300 rounded p-3 flex-1 flex flex-col max-h-[280px]">
+            <div className="flex items-center mb-2">
+              <img
+                src={OpportunitiesIcon}
+                alt="Skills"
+                className="w-5 h-5 mr-2"
+              />
+              <span className="text-sm font-medium">Select all that apply:</span>
+            </div>
+            <div className="grid grid-cols-1 gap-2 overflow-y-auto flex-1 pr-1">
+              {skillOptions.map((skill) => (
+                <label key={skill} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 p-2 rounded transition-colors">
+                  <div className="relative flex items-center w-full">
+                    <input
+                      type="checkbox"
+                      checked={preferredSkills.includes(skill)}
+                      onChange={() => handleSkillChange(skill)}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${preferredSkills.includes(skill)
+                        ? 'bg-emerald-600 border-emerald-600'
+                        : 'border-gray-300 group-hover:border-emerald-400'
+                      }`}>
+                      {preferredSkills.includes(skill) && (
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`ml-3 group-hover:text-emerald-800 transition-all duration-200 ${preferredSkills.includes(skill)
+                        ? 'text-emerald-800 font-bold'
+                        : 'text-gray-700 font-normal'
+                      }`}>
+                      {skill}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Step 2 Buttons */}
+      {/* Step 1 Buttons */}
       <div className="flex justify-between">
         <button
-          onClick={goToPrevious}
+          onClick={() => setModalConfig({
+            title: "Close",
+            message: "Are you sure you want to close? All progress will be lost.",
+            onConfirm: () => {
+              setModalConfig(null);
+              navigate("/dashboard");
+            },
+            onCancel: () => setModalConfig(null),
+          })}
           className="bg-gray-500 text-white px-6 py-2 rounded-full hover:bg-gray-600 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
         >
-          Previous
+          Close
         </button>
         <button
-          onClick={goToStep3}
+          onClick={goToStep2}
           className="bg-emerald-700 text-white px-6 py-2 rounded-full hover:bg-emerald-900 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
         >
-          Confirm
+          Next
         </button>
       </div>
     </div>
   );
 
-  // Render Step 3 - Overview (Updated to show task names and descriptions)
+  const renderStep2 = () => {
+    const tasksToRender = eventType === 'multiple' ? dynamicTasks : completionTasks;
+
+    return (
+      <div
+        className="rounded-lg shadow-xl p-6 w-full border-4 border-emerald-800"
+        style={{ backgroundColor: "#fade97" }}
+      >
+        <h3 className="text-xl font-bold text-emerald-800 mb-4">
+          Step 2: {eventType === 'multiple' ? 'Event Tasks' : 'Completion Tasks'}
+        </h3>
+
+        <p className="text-emerald-700 mb-6">
+          {eventType === 'multiple'
+            ? "Define different tasks for this multi-day event. Each task can have its own schedule and description."
+            : "Define three tasks that need to be completed for this event. These will be used to track event progress."}
+        </p>
+
+        <div className="space-y-6 mb-6">
+          {tasksToRender.map((task, index) => (
+            <div key={task.id} className="bg-white rounded-lg border-2 border-emerald-400 p-5 shadow-md">
+              <div className="flex items-start justify-between mb-4">
+                <h4 className="font-bold text-xl text-emerald-900">
+                  {eventType === 'multiple' ? `Task ${index + 1}` : `Task ${index + 1}`}
+                  <span className="text-red-600">*</span>
+                </h4>
+                {eventType === 'multiple' && tasksToRender.length > 1 && (
+                 <button
+  type="button"
+  onClick={(e) => {
+    e.preventDefault();
+    removeDynamicTask(task.id);
+  }}
+  className="text-red-600 hover:text-red-800 text-sm font-medium cursor-pointer bg-red-50 px-3 py-1 rounded"
+>
+  Remove
+</button>
+                )}
+              </div>
+
+              {eventType === 'multiple' ? (
+                <>
+                  {/* Task Name */}
+                  <div className="mb-4">
+                    <label className="block font-semibold text-emerald-800 mb-1">
+                      Task Name <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Registration, Processing, Distribution"
+                      value={task.taskName}
+                      onChange={(e) => handleDynamicTaskChange(task.id, 'taskName', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  {/* Date & Time Range - ONE LINER */}
+                  <div className="mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Date Range */}
+                      <div>
+                        <label className="block font-semibold text-emerald-800 mb-1">
+                          Date Range <span className="text-red-600">*</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
+                            <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
+                            <input
+                              type="date"
+                              value={task.startDate}
+                              onChange={(e) => handleDynamicTaskChange(task.id, 'startDate', e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
+                            />
+                          </div>
+                          <span className="text-gray-600 text-sm">to</span>
+                          <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
+                            <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
+                            <input
+                              type="date"
+                              value={task.endDate}
+                              onChange={(e) => handleDynamicTaskChange(task.id, 'endDate', e.target.value)}
+                              min={task.startDate || new Date().toISOString().split('T')[0]}
+                              className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Time Range */}
+                      <div>
+                        <label className="block font-semibold text-emerald-800 mb-1">
+                          Time Range <span className="text-red-600">*</span>
+                        </label>
+                        <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 gap-2">
+                          <img src={TimeIcon} alt="Time" className="w-4 h-4 mr-2" />
+                          <select
+                            value={task.startTime}
+                            onChange={(e) => handleDynamicTaskChange(task.id, 'startTime', e.target.value)}
+                            className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
+                          >
+                            <option value="">Start</option>
+                            {timeOptions.map((time) => (
+                              <option key={`task${task.id}-start-${time.value}`} value={time.value}>
+                                {time.label}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="text-gray-600 text-sm">-</span>
+                          <select
+                            value={task.endTime}
+                            onChange={(e) => handleDynamicTaskChange(task.id, 'endTime', e.target.value)}
+                            className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
+                          >
+                            <option value="">End</option>
+                            {timeOptions.map((time) => (
+                              <option key={`task${task.id}-end-${time.value}`} value={time.value}>
+                                {time.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block font-semibold text-emerald-800 mb-1">
+                      Task Description <span className="text-red-600">*</span>
+                    </label>
+                    <textarea
+                      placeholder="Describe what needs to be done in this task..."
+                      value={task.description}
+                      onChange={(e) => handleDynamicTaskChange(task.id, 'description', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 resize-none"
+                      rows={3}
+                    />
+                    <p className="text-sm text-emerald-600 mt-1">
+                      Separate sub-tasks with dashes (-). Example: Check-in volunteers-Assign groups-Brief team leaders
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <textarea
+                    placeholder="Enter task description..."
+                    value={task.description}
+                    onChange={(e) => handleTaskChange(task.id, e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 resize-none"
+                    rows={3}
+                  />
+                  <p className="text-sm text-emerald-600 mt-1">
+                    Separate multiple task points with dashes (-). Example: Setup materials-Assign roles-Monitor progress
+                  </p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+         {eventType === 'multiple' && (
+        <button
+          type="button"
+          onClick={addDynamicTask}
+          className="w-full bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-all duration-200 mb-6 cursor-pointer font-semibold"
+        >
+          + Add Another Task
+        </button>
+      )}
+
+        {/* Step 2 Buttons */}
+        <div className="flex justify-between">
+          <button
+            onClick={goToPrevious}
+            className="bg-gray-500 text-white px-6 py-2 rounded-full hover:bg-gray-600 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Previous
+          </button>
+          <button
+            onClick={goToStep3}
+            className="bg-emerald-700 text-white px-6 py-2 rounded-full hover:bg-emerald-900 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0'); 
+  const day = String(date.getDate()).padStart(2, '0');        
+  const year = date.getFullYear();                            
+  
+  return `${month}-${day}-${year}`; 
+};
+
+  // Render Step 3 
   const renderStep3 = () => (
     <div
       className="rounded-lg shadow-xl p-6 w-full border-4 border-emerald-800"
       style={{ backgroundColor: "#fade97" }}
     >
       <h3 className="text-xl font-bold text-emerald-800 mb-4">Step 3: Event Overview</h3>
-      
+
       <p className="text-emerald-700 mb-6">
         Review all event details before publishing. Make sure everything is correct.
       </p>
 
       <div className="space-y-6">
-        {/* Event Details Section */}
-        <div className="bg-white rounded-lg p-4 border border-emerald-300">
-          <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
-            Event Details
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Event Title:</p>
-              <p className="text-gray-800">{eventTitle}</p>
-            </div>
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Date:</p>
-              <p className="text-gray-800">{eventDate}</p>
-            </div>
+  {/* Event Details Section */}
+  <div className="bg-white rounded-lg p-4 border border-emerald-300">
+    <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
+      Event Details
+    </h4>
+
+    {/* Upper Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <p className="text-sm text-emerald-600 font-medium">Event Title:</p>
+        <p className="text-gray-800">{eventTitle}</p>
+      </div>
+      <div>
+        <p className="text-sm text-emerald-600 font-medium">
+          {eventType === 'multiple' ? 'Event Duration' : 'Event Date'}
+        </p>
+        <p className="text-gray-800">
+          {eventType === 'multiple' 
+            ? `${formatDate(eventStartDate)} to ${formatDate(eventEndDate)}` 
+            : formatDate(eventDate)}
+        </p>
+      </div>
+      <div>
+        <p className="text-sm text-emerald-600 font-medium">Time:</p>
+        <p className="text-gray-800">{startTime} - {endTime}</p>
+      </div>
+      <div>
+        <p className="text-sm text-emerald-600 font-medium">Location:</p>
+        <p className="text-gray-800">{location}</p>
+      </div>
+      <div>
+        <p className="text-sm text-emerald-600 font-medium">Volunteers Limit:</p>
+        <p className="text-gray-800">{volunteersLimit}</p>
+      </div>
+      <div>
+        <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
+        <p className="text-gray-800">{callTime}</p>
+      </div>
+    </div>
+
+    {/* Divider / Gap */}
+    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-emerald-100 pt-4">
+      
+      {/* LEFT SIDE: Long Descriptions*/}
+      <div className="space-y-4">
+        <div>
+          <p className="text-sm text-emerald-600 font-medium">Description:</p>
+          <p className="text-gray-800 text-sm">{eventDescription}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-emerald-600 font-medium">Objectives:</p>
+          <p className="text-gray-800 text-sm">{eventObjectives}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-emerald-600 font-medium">What to Expect:</p>
+          <p className="text-gray-800 text-sm">{eventTasks}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-emerald-600 font-medium">Volunteer Guidelines:</p>
+          <p className="text-gray-800 text-sm">{volunteerGuidelines}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-emerald-600 font-medium">Volunteer Opportunities:</p>
+          <p className="text-gray-800 text-sm">{volunteerOpportunities.join(", ")}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-emerald-600 font-medium">Preferred Skills:</p>
+          <p className="text-gray-800 text-sm">{preferredSkills.join(", ")}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+  <p className="text-sm text-emerald-600 font-medium mb-2">Event Image:</p>
+  {imagePreview ? (
+    <div className="flex justify-center items-center bg-gray-50 rounded-lg p-2 min-h-[150px]">
+      <img
+  src={imagePreview}
+  alt="Event"
+  onLoad={handleImageLoad}
+  /* Pinagsamang logic ng orientation at custom class */
+  className="event-image-preview object-contain rounded shadow-md mx-auto max-w-full"
+  style={{ 
+    maxHeight: '180px', // Sakto lang na laki
+    width: 'auto',
+    /* Automatic border logic */
+    border: imageOrientation === "portrait" 
+      ? "2px solid #b0b0b0"  // Makapal at dark green kung Portrait
+      : "2px solid #b0b0b0"   // Manipis at light green kung Landscape
+  }}
+/>
+    </div>
+    
+  ) : (
+    <div className="border border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center text-gray-400 text-sm italic">
+      No image uploaded
+    </div>
+  )}
+</div>
+
+    </div>
+  </div>
+</div>
+
+   {/* Completion Tasks Section */}
+<div className="bg-white rounded-lg p-4 border border-emerald-300 mt-6">
+  <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
+    {eventType === 'multiple' ? 'Event Tasks' : 'Completion Tasks'}
+  </h4>
+  <div className="space-y-4">
+    {(eventType === 'multiple' ? dynamicTasks : completionTasks).map((task, index) => (
+      <div key={task.id} className="border border-emerald-200 rounded-lg p-4 bg-emerald-50">
+        <div className="flex items-start">
+          <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
+            {index + 1}
+          </span>
+          <div className="flex-1">
+            <h5 className="font-semibold text-emerald-800 mb-2">
+              {eventType === 'multiple' ? task.taskName : `Task ${index + 1}`}
+            </h5>
+            
             {eventType === 'multiple' && (
-              <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
+                {/* Clearer Start Schedule */}
                 <div>
-                  <p className="text-sm text-emerald-600 font-medium">Event Type:</p>
-                  <p className="text-gray-800">Multiple Day Event</p>
+                  <p className="text-gray-700">
+                    <span className="font-bold text-emerald-700">Start Date:</span> {formatDate(task.startDate)}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-bold text-emerald-700">End Date:</span> {formatDate(task.endDate)}
+                  </p>
                 </div>
+
+                {/* Clearer End Schedule */}
                 <div>
-                  <p className="text-sm text-emerald-600 font-medium">End Date:</p>
-                  <p className="text-gray-800">{eventEndDate}</p>
-                </div>
-              </>
-            )}
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Time:</p>
-              <p className="text-gray-800">{startTime} - {endTime}</p>
-            </div>
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Location:</p>
-              <p className="text-gray-800">{location}</p>
-            </div>
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Volunteers Limit:</p>
-              <p className="text-gray-800">{volunteersLimit}</p>
-            </div>
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
-              <p className="text-gray-800">{callTime}</p>
-            </div>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-emerald-600 font-medium">Description:</p>
-            <p className="text-gray-800 text-sm">{eventDescription}</p>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-emerald-600 font-medium">Objectives:</p>
-            <p className="text-gray-800 text-sm">{eventObjectives}</p>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-emerald-600 font-medium">What to Expect:</p>
-            <p className="text-gray-800 text-sm">{eventTasks}</p>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-emerald-600 font-medium">Volunteer Guidelines:</p>
-            <p className="text-gray-800 text-sm">{volunteerGuidelines}</p>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-emerald-600 font-medium">Volunteer Opportunities:</p>
-            <p className="text-gray-800 text-sm">{volunteerOpportunities.join(", ")}</p>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-sm text-emerald-600 font-medium">Preferred Skills:</p>
-            <p className="text-gray-800 text-sm">{preferredSkills.join(", ")}</p>
-        </div>
-          
-          {selectedFile && (
-            <div className="mt-4">
-              <p className="text-sm text-emerald-600 font-medium">Event Image:</p>
-              {imagePreview ? (
-                <img 
-                  src={imagePreview} 
-                  alt="Event" 
-                  className="mt-2 max-w-xs h-32 object-cover rounded border"
-                />
-              ) : (
-                <p className="text-gray-800 text-sm">{selectedFile.name}</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Completion Tasks Section - Updated to show only descriptions */}
-        <div className="bg-white rounded-lg p-4 border border-emerald-300">
-          <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
-            Completion Tasks
-          </h4>
-          <div className="space-y-4">
-            {completionTasks.map((task, index) => (
-              <div key={task.id} className="border border-emerald-200 rounded-lg p-4 bg-emerald-50">
-                <div className="flex items-start">
-                  <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
-                    {index + 1}
-                  </span>
-                  <div className="flex-1">
-                    <h5 className="font-semibold text-emerald-800 mb-2">Task {index + 1}</h5>
-                    <p className="text-gray-700 text-sm">{task.description}</p>
-                  </div>
+                  <p className="text-gray-700">
+                    <span className="font-bold text-emerald-700">Start Time:</span> {task.startTime}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-bold text-emerald-700">End Time:</span> {task.endTime}
+                  </p>
                 </div>
               </div>
-            ))}
+            )}
+            
+            <p className="text-emerald-800 text-[11px] font-bold uppercase mb-1">Task Description:</p>
+            <p className="text-gray-700 text-sm italic">{task.description}</p>
           </div>
         </div>
       </div>
+    ))}
+  </div>
+</div>
 
       {/* Step 3 Buttons */}
       <div className="flex justify-between mt-6">
@@ -1435,109 +1856,109 @@ const clearAllFields = () => {
   );
 
   return (
-    <div
-      className="flex min-h-screen bg-no-repeat bg-center"
-      style={{
-        backgroundImage: `url(${CentroAdminBg})`,
-        backgroundSize: "100% 100%",
-      }}
-    >
-      <Sidebar onCollapseChange={setSidebarCollapsed} />
-
-      <main 
-        className="flex-1 p-4 overflow-y-auto transition-all duration-300"
-        style={{ marginLeft: sidebarCollapsed ? "5rem" : "16rem" }}
-      >        
-              <div className="w-full max-w-6xl">
-          {/* Progress Indicator */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between bg-white rounded-lg p-4 border-4 border-emerald-800 shadow-lg">
-              <div className="flex items-center space-x-4">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold ${
-                  currentStep >= 1 ? 'bg-emerald-700' : 'bg-gray-400'
-                }`}>
-                  1
-                </div>
-                <div className={`h-1 w-20 ${currentStep > 1 ? 'bg-emerald-700' : 'bg-gray-300'}`}></div>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold ${
-                  currentStep >= 2 ? 'bg-emerald-700' : 'bg-gray-400'
-                }`}>
-                  2
-                </div>
-                <div className={`h-1 w-20 ${currentStep > 2 ? 'bg-emerald-700' : 'bg-gray-300'}`}></div>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold ${
-                  currentStep >= 3 ? 'bg-emerald-700' : 'bg-gray-400'
-                }`}>
-                  3
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Step {currentStep} of 3</p>
-                <p className="font-semibold text-emerald-800">
-                  {currentStep === 1 && "Event Details"}
-                  {currentStep === 2 && "Completion Tasks"}
-                  {currentStep === 3 && "Review & Publish"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Header */}
-          <div className="text-center mb-4 p-2 border-2 border-emerald-900 rounded-lg bg-emerald-900 shadow-md">
-            <h2 className="text-2xl font-bold text-white">
-              CREATE / SCHEDULE AN EVENT
-            </h2>
-          </div>
-
-          {/* Step Content */}
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
-        </div>
-      </main>
-
-      {/* Show Confirmation Modal */}
-      {modalConfig && (
-        <ConfirmationModal
-          title={modalConfig.title}
-          message={modalConfig.message}
-          onConfirm={modalConfig.onConfirm}
-          onCancel={modalConfig.onCancel}
-          type={modalConfig.type || "confirm"}
+    <>
+      {/* Event Type Selection Modal */}
+      {showEventTypeModal && !eventType && (
+        <EventTypeModal
+          onSelect={(type) => {
+            setEventType(type);
+            setShowEventTypeModal(false);
+          }}
+          onCancel={() => navigate("/dashboard")}
         />
       )}
 
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-          @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
+      {/* Only show main content after event type is selected */}
+      {eventType && (
+        <div
+          className="flex min-h-screen bg-no-repeat bg-center"
+          style={{
+            backgroundImage: `url(${CentroAdminBg})`,
+            backgroundSize: "100% 100%",
+          }}
+        >
+          <Sidebar onCollapseChange={setSidebarCollapsed} />
+
+          <main
+            className="flex-1 p-4 overflow-y-auto transition-all duration-300"
+            style={{ marginLeft: sidebarCollapsed ? "5rem" : "16rem" }}
+          >
+            <div className="w-full max-w-6xl">
+              {/* Progress Indicator */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between bg-white rounded-lg p-4 border-4 border-emerald-800 shadow-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold ${currentStep >= 1 ? 'bg-emerald-700' : 'bg-gray-400'
+                      }`}>
+                      1
+                    </div>
+                    <div className={`h-1 w-20 ${currentStep > 1 ? 'bg-emerald-700' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold ${currentStep >= 2 ? 'bg-emerald-700' : 'bg-gray-400'
+                      }`}>
+                      2
+                    </div>
+                    <div className={`h-1 w-20 ${currentStep > 2 ? 'bg-emerald-700' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold ${currentStep >= 3 ? 'bg-emerald-700' : 'bg-gray-400'
+                      }`}>
+                      3
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Step {currentStep} of 3</p>
+                    <p className="font-semibold text-emerald-800">
+                      {currentStep === 1 && "Event Details"}
+                      {currentStep === 2 && "Completion Tasks"}
+                      {currentStep === 3 && "Review & Publish"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+
+              {/* Header */}
+              <div className="text-center mb-4 p-2 border-2 border-emerald-900 rounded-lg bg-emerald-900 shadow-md">
+                <h2 className="text-2xl font-bold text-white">
+                  CREATE / SCHEDULE AN EVENT {eventType === 'multiple' && '(MULTIPLE EVENT)'}
+                </h2>
+              </div>
+
+              {/* Step Content */}
+              {currentStep === 1 && renderStep1()}
+              {currentStep === 2 && renderStep2()}
+              {currentStep === 3 && renderStep3()}
+            </div>
+          </main>
+
+          {/* Show Confirmation Modal */}
+          {modalConfig && (
+            <ConfirmationModal
+              title={modalConfig.title}
+              message={modalConfig.message}
+              onConfirm={modalConfig.onConfirm}
+              onCancel={modalConfig.onCancel}
+              type={modalConfig.type || "confirm"}
+            />
+          )}
+
+          {/* CSS Animations */}
+          <style jsx>{`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+
+          @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
           }
-        }
 
-        .animate-slideDown {
-          animation: slideDown 0.3s ease-out;
-        }
+          .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+          .animate-scaleIn { animation: scaleIn 0.2s ease-out; }
+        `}</style>
+        </div>
+      )}
+    </>
 
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.9); }
-          to { opacity: 1; transform: scale(1); }
-        }
-
-        .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
-        .animate-scaleIn { animation: scaleIn 0.2s ease-out; }
-      `}</style>
-    </div>
   );
 }
-
 export default CreateEvent;
