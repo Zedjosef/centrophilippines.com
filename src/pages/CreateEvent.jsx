@@ -109,34 +109,87 @@ function EventTypeModal({ onSelect, onCancel }) {
       className="fixed inset-0 flex items-center justify-center z-[9999] animate-fadeIn"
       onClick={handleBackdropClick}
     >
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+      {/* Backdrop with gradient blur */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-emerald-900/20 to-black/40 backdrop-blur-sm"></div>
       <div
-        className="relative rounded-lg shadow-2xl p-8 w-1/2 text-center z-[10000] border-4 border-emerald-800 transform animate-scaleIn"
-        style={{ backgroundColor: "#fade97" }}
+        className="relative rounded-3xl p-10 w-[620px] text-center z-[10000] transform animate-scaleIn shadow-2xl"
+        style={{
+          background: "linear-gradient(145deg, #ffffff 0%, #f0fdf4 50%, #ecfdf5 100%)",
+          border: "3px solid #10b981",
+        }}
       >
-        <h2 className="text-2xl font-bold text-emerald-800 mb-3">Select Event Type</h2>
-        <p className="text-gray-700 mb-8 text-sm">Choose the type of event you want to create</p>
+        <div
+          className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center shadow-xl"
+          style={{ 
+            background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+            boxShadow: "0 10px 30px rgba(16, 185, 129, 0.4)"
+          }}
+        >
+          <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-emerald-900 mb-2">Select Event Type</h2>
+        <p className="text-emerald-600 text-sm mb-8 font-medium">Choose the type of event you want to create</p>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 mb-6 px-8">
           <button
             onClick={() => onSelect('single')}
-            className="bg-emerald-700 text-white px-8 py-4 rounded-lg hover:bg-emerald-900 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer font-semibold text-lg"
+            className="group relative overflow-hidden rounded-2xl p-5 font-semibold text-base text-white transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.97] shadow-lg hover:shadow-2xl cursor-pointer border-2 border-transparent hover:border-emerald-300"
+            style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
           >
-            Single Event
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-all duration-300" />
+            <div className="relative flex items-center justify-between px-3">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-all duration-300">
+                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-lg">Single Event</div>
+                  <div className="text-emerald-100 text-xs font-normal">Perfect for one-day activities</div>
+                </div>
+              </div>
+              <svg className="w-6 h-6 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </button>
+
           <button
             onClick={() => onSelect('multiple')}
-            className="bg-emerald-600 text-white px-8 py-4 rounded-lg hover:bg-emerald-800 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer font-semibold text-lg"
+            className="group relative overflow-hidden rounded-2xl p-5 font-semibold text-base text-white transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.97] shadow-lg hover:shadow-2xl cursor-pointer border-2 border-transparent hover:border-emerald-300"
+            style={{ background: "linear-gradient(135deg, #047857 0%, #059669 100%)" }}
           >
-            Multiple Event
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-all duration-300" />
+            <div className="relative flex items-center justify-between px-3">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-all duration-300">
+                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-lg">Multiple Event</div>
+                  <div className="text-emerald-100 text-xs font-normal">For multi-day programs</div>
+                </div>
+              </div>
+              <svg className="w-6 h-6 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </button>
         </div>
 
         <button
           onClick={onCancel}
-          className="mt-6 text-gray-600 hover:text-gray-800 transition-all duration-200 cursor-pointer text-sm underline"
+          className="mt-4 text-emerald-700 hover:text-emerald-900 transition-all duration-200 text-sm font-semibold flex items-center gap-2 mx-auto cursor-pointer hover:gap-3 group"
         >
-          Cancel
+          <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Go back to dashboard</span>
         </button>
       </div>
     </div>
@@ -992,6 +1045,7 @@ function CreateEvent() {
     }
   };
   const goToPrevious = () => setCurrentStep(prev => Math.max(1, prev - 1));
+  const fileInputRef = useRef(null);
 
   // Render Step 1 - Event Details
   const renderStep1 = () => (
@@ -1069,7 +1123,7 @@ function CreateEvent() {
           </div>
         </div>
       ) : (
-        // Multiple Event - Date Range & Time 
+        // Multiple Event - Date Range & Time (fixed one-liner)
         <div className="w-full mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Event Date Range */}
@@ -1077,30 +1131,23 @@ function CreateEvent() {
               <label className="block font-semibold text-lg text-emerald-800 mb-1">
                 Event Duration <span className="text-red-600">*</span>
               </label>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
-                  <img src={DateIcon} alt="Date" className="w-5 h-5 mr-2" />
-                  <input
-                    type="date"
-                    value={eventStartDate}
-                    onChange={(e) => setEventStartDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
-                    placeholder="Start Date"
-                  />
-                </div>
-                <span className="text-gray-600 font-semibold">to</span>
-                <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
-                  <img src={DateIcon} alt="Date" className="w-5 h-5 mr-2" />
-                  <input
-                    type="date"
-                    value={eventEndDate}
-                    onChange={(e) => setEventEndDate(e.target.value)}
-                    min={eventStartDate || new Date().toISOString().split('T')[0]}
-                    className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
-                    placeholder="End Date"
-                  />
-                </div>
+              <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
+                <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
+                <input
+                  type="date"
+                  value={eventStartDate}
+                  onChange={(e) => setEventStartDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
+                />
+                <span className="text-gray-400 text-xs font-medium flex-shrink-0">to</span>
+                <input
+                  type="date"
+                  value={eventEndDate}
+                  onChange={(e) => setEventEndDate(e.target.value)}
+                  min={eventStartDate || new Date().toISOString().split('T')[0]}
+                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
+                />
               </div>
             </div>
 
@@ -1109,12 +1156,12 @@ function CreateEvent() {
               <label className="block font-semibold text-lg text-emerald-800 mb-1">
                 Event Time <span className="text-red-600">*</span>
               </label>
-              <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 gap-2">
-                <img src={TimeIcon} alt="Time" className="w-5 h-5 mr-2" />
+              <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
+                <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
                 <select
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm py-2"
+                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
                 >
                   <option value="">Start Time</option>
                   {timeOptions.map((time) => (
@@ -1123,11 +1170,11 @@ function CreateEvent() {
                     </option>
                   ))}
                 </select>
-                <span className="text-gray-600">-</span>
+                <span className="text-gray-400 text-xs flex-shrink-0">—</span>
                 <select
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm py-2"
+                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
                 >
                   <option value="">End Time</option>
                   {timeOptions.map((time) => (
@@ -1209,7 +1256,8 @@ function CreateEvent() {
             value={volunteersLimit}
             onChange={(e) => setVolunteersLimit(e.target.value)}
             min="1"
-            className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 py-2 bg-white text-gray-700"
+            className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 bg-white text-gray-700"
+            style={{ height: "42px" }}
           />
         </div>
 
@@ -1218,12 +1266,12 @@ function CreateEvent() {
           <label className="block font-semibold text-lg text-emerald-800 mb-1">
             Call Time <span className="text-red-600">*</span>
           </label>
-          <div className="flex items-center border bg-white border-gray-300 rounded px-4 py-2">
-            <img src={TimeIcon} alt="Time" className="w-5 h-5 mr-2" />
+          <div className="flex items-center border bg-white border-gray-300 rounded-lg px-4 gap-2" style={{ height: "42px" }}>
+            <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
             <select
               value={callTime}
               onChange={(e) => setCallTime(e.target.value)}
-              className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700"
+              className="flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
             >
               <option value="">Select Time</option>
               {timeOptions.map((time) => (
@@ -1277,48 +1325,58 @@ function CreateEvent() {
           <label className="block font-semibold text-lg text-emerald-800 mb-1">
             Upload Event Poster/Image <span className="text-red-600">*</span>
           </label>
-          <div className="flex items-center border bg-white border-gray-300 rounded px-3">
-            <img src={FileIcon} alt="Upload" className="w-5 h-5 mr-2" />
-            <input
-              type="file"
-              accept={supportedImageTypes.join(',')}
-              onChange={handleFileSelect}
-              className="w-full px-4 py-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+          <div className="flex flex-col border border-gray-300 rounded-lg bg-white overflow-hidden">
+            {/* Clickable preview zone — auto opens file picker */}
+            <div
+              className="flex items-center justify-center bg-gray-50 border-b border-gray-100 flex-shrink-0 cursor-pointer transition-colors duration-200 group"
+              style={{ height: "200px" }}
+              onClick={() => fileInputRef.current?.click()}
+              title="Click to upload image"
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  onLoad={handleImageLoad}
+                  className="object-contain rounded"
+                  style={{ maxHeight: "195px", maxWidth: "100%", width: "auto" }}
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-gray-300 group-hover:text-emerald-400 transition-colors select-none">
+                  <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-xs font-medium">Click to upload image</span>
+                </div>
+              )}
+            </div>
+            {/* Controls */}
+            <div className="p-3 flex flex-col gap-1.5">
+              <label className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100 transition-colors">
+                <img src={FileIcon} alt="Upload" className="w-4 h-4 opacity-60 flex-shrink-0" />
+                <span className="text-xs text-emerald-700 font-medium truncate">
+                  {selectedFile ? selectedFile.name : "Choose image file..."}
+                </span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={supportedImageTypes.join(',')}
+                  onChange={handleFileSelect}
+                  className="sr-only"
+                />
+              </label>
+              <p className="text-xs text-gray-400">Formats: {supportedExtensions.join(', ')} · Max 10MB</p>
+              {selectedFile && (
+                <button
+                  type="button"
+                  onClick={removeSelectedFile}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium text-left transition-colors cursor-pointer"
+                >
+                  ✕ Remove image
+                </button>
+              )}
+            </div>
           </div>
-          <p className="text-xs text-emerald-700 mt-1">
-            Supported formats: {supportedExtensions.join(', ')}. Max size: 10MB.
-          </p>
-
-          {imagePreview && (
-            <div className="mt-2">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="max-w-full h-32 object-cover rounded border"
-              />
-              <button
-                type="button"
-                onClick={removeSelectedFile}
-                className="mt-2 text-red-600 hover:text-red-800 text-xs font-medium block cursor-pointer"
-              >
-                Remove Image
-              </button>
-            </div>
-          )}
-
-          {selectedFile && !imagePreview && (
-            <div className="mt-2 p-2 bg-emerald-100 rounded text-sm text-emerald-800">
-              <p>File selected: {selectedFile.name}</p>
-              <button
-                type="button"
-                onClick={removeSelectedFile}
-                className="mt-1 text-red-600 hover:text-red-800 text-xs font-medium cursor-pointer"
-              >
-                Remove File
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Volunteer Opportunities */}
@@ -1335,9 +1393,9 @@ function CreateEvent() {
               />
               <span className="text-sm font-medium">Select all that apply:</span>
             </div>
-            <div className="grid grid-cols-1 gap-2 overflow-y-auto flex-1 pr-1">
+            <div className="grid grid-cols-1 gap-1 overflow-y-auto flex-1 pr-1">
               {opportunityOptions.map((option) => (
-                <label key={option} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 p-2 rounded transition-colors">
+                <label key={option} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 px-2 py-2 rounded transition-colors">
                   <div className="relative flex items-center w-full">
                     <input
                       type="checkbox"
@@ -1355,7 +1413,7 @@ function CreateEvent() {
                         </svg>
                       )}
                     </div>
-                    <span className={`ml-3 group-hover:text-emerald-800 transition-all duration-200 ${volunteerOpportunities.includes(option)
+                    <span className={`ml-3 text-sm group-hover:text-emerald-800 transition-all duration-200 ${volunteerOpportunities.includes(option)
                         ? 'text-emerald-800 font-bold'
                         : 'text-gray-700 font-normal'
                       }`}>
@@ -1382,9 +1440,9 @@ function CreateEvent() {
               />
               <span className="text-sm font-medium">Select all that apply:</span>
             </div>
-            <div className="grid grid-cols-1 gap-2 overflow-y-auto flex-1 pr-1">
+            <div className="grid grid-cols-1 gap-1 overflow-y-auto flex-1 pr-1">
               {skillOptions.map((skill) => (
-                <label key={skill} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 p-2 rounded transition-colors">
+                <label key={skill} className="flex items-center text-sm cursor-pointer group hover:bg-emerald-50 px-2 py-2 rounded transition-colors">
                   <div className="relative flex items-center w-full">
                     <input
                       type="checkbox"
@@ -1402,7 +1460,7 @@ function CreateEvent() {
                         </svg>
                       )}
                     </div>
-                    <span className={`ml-3 group-hover:text-emerald-800 transition-all duration-200 ${preferredSkills.includes(skill)
+                    <span className={`ml-3 text-sm group-hover:text-emerald-800 transition-all duration-200 ${preferredSkills.includes(skill)
                         ? 'text-emerald-800 font-bold'
                         : 'text-gray-700 font-normal'
                       }`}>
@@ -1498,50 +1556,45 @@ function CreateEvent() {
                     />
                   </div>
 
-                  {/* Date & Time Range - ONE LINER */}
+                  {/* Date & Time Range — strict one liner, no stacking */}
                   <div className="mb-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex gap-4">
                       {/* Date Range */}
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <label className="block font-semibold text-emerald-800 mb-1">
                           Date Range <span className="text-red-600">*</span>
                         </label>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
-                            <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
-                            <input
-                              type="date"
-                              value={task.startDate}
-                              onChange={(e) => handleDynamicTaskChange(task.id, 'startDate', e.target.value)}
-                              min={new Date().toISOString().split('T')[0]}
-                              className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
-                            />
-                          </div>
-                          <span className="text-gray-600 text-sm">to</span>
-                          <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 flex-1">
-                            <img src={DateIcon} alt="Date" className="w-4 h-4 mr-2" />
-                            <input
-                              type="date"
-                              value={task.endDate}
-                              onChange={(e) => handleDynamicTaskChange(task.id, 'endDate', e.target.value)}
-                              min={task.startDate || new Date().toISOString().split('T')[0]}
-                              className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm"
-                            />
-                          </div>
+                        <div className="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-2 gap-1">
+                          <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
+                          <input
+                            type="date"
+                            value={task.startDate}
+                            onChange={(e) => handleDynamicTaskChange(task.id, 'startDate', e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-xs min-w-0"
+                          />
+                          <span className="text-gray-400 text-xs flex-shrink-0">→</span>
+                          <input
+                            type="date"
+                            value={task.endDate}
+                            onChange={(e) => handleDynamicTaskChange(task.id, 'endDate', e.target.value)}
+                            min={task.startDate || new Date().toISOString().split('T')[0]}
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-xs min-w-0"
+                          />
                         </div>
                       </div>
 
                       {/* Time Range */}
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <label className="block font-semibold text-emerald-800 mb-1">
                           Time Range <span className="text-red-600">*</span>
                         </label>
-                        <div className="flex items-center border bg-white border-gray-300 rounded px-3 py-2 gap-2">
-                          <img src={TimeIcon} alt="Time" className="w-4 h-4 mr-2" />
+                        <div className="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-2 gap-1">
+                          <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
                           <select
                             value={task.startTime}
                             onChange={(e) => handleDynamicTaskChange(task.id, 'startTime', e.target.value)}
-                            className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-xs min-w-0"
                           >
                             <option value="">Start</option>
                             {timeOptions.map((time) => (
@@ -1550,11 +1603,11 @@ function CreateEvent() {
                               </option>
                             ))}
                           </select>
-                          <span className="text-gray-600 text-sm">-</span>
+                          <span className="text-gray-400 text-xs flex-shrink-0">→</span>
                           <select
                             value={task.endTime}
                             onChange={(e) => handleDynamicTaskChange(task.id, 'endTime', e.target.value)}
-                            className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-xs min-w-0"
                           >
                             <option value="">End</option>
                             {timeOptions.map((time) => (
