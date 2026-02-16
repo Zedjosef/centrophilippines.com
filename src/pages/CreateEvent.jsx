@@ -120,7 +120,7 @@ function EventTypeModal({ onSelect, onCancel }) {
       >
         <div
           className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center shadow-xl"
-          style={{ 
+          style={{
             background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
             boxShadow: "0 10px 30px rgba(16, 185, 129, 0.4)"
           }}
@@ -446,215 +446,215 @@ function CreateEvent() {
   };
 
   const validatePage1 = () => {
-  // Check for missing basic fields first
-  if (!eventTitle.trim()) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide an Event Title.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
-
-  // Validate date based on event type
-  if (eventType === 'single') {
-    if (!eventDate) {
+    // Check for missing basic fields first
+    if (!eventTitle.trim()) {
       setModalConfig({
         title: "Incomplete",
-        message: "Please select an Event Date.",
+        message: "Please provide an Event Title.",
         onCancel: () => setModalConfig(null),
         type: "alert",
       });
       return false;
     }
-  } else if (eventType === 'multiple') {
-    if (!eventStartDate || !eventEndDate) {
+
+    // Validate date based on event type
+    if (eventType === 'single') {
+      if (!eventDate) {
+        setModalConfig({
+          title: "Incomplete",
+          message: "Please select an Event Date.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
+    } else if (eventType === 'multiple') {
+      if (!eventStartDate || !eventEndDate) {
+        setModalConfig({
+          title: "Incomplete",
+          message: "Please provide event start and end dates.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
+
+      const start = new Date(eventStartDate);
+      const end = new Date(eventEndDate);
+      if (end < start) {
+        setModalConfig({
+          title: "Invalid Date Range",
+          message: "Event end date must be after start date.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
+    }
+
+    if (!startTime) {
       setModalConfig({
         title: "Incomplete",
-        message: "Please provide event start and end dates.",
+        message: "Please select a Start Time.",
         onCancel: () => setModalConfig(null),
         type: "alert",
       });
       return false;
     }
 
-    const start = new Date(eventStartDate);
-    const end = new Date(eventEndDate);
-    if (end < start) {
+    if (!endTime) {
       setModalConfig({
-        title: "Invalid Date Range",
-        message: "Event end date must be after start date.",
+        title: "Incomplete",
+        message: "Please select an End Time.",
         onCancel: () => setModalConfig(null),
         type: "alert",
       });
       return false;
     }
-  }
 
-  if (!startTime) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please select a Start Time.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!eventDescription.trim()) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide an Event Description.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!endTime) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please select an End Time.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!eventObjectives.trim()) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide Event Objectives.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!eventDescription.trim()) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide an Event Description.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!location.trim()) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide a Location.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!eventObjectives.trim()) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide Event Objectives.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!volunteersLimit || volunteersLimit <= 0) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide a valid Volunteers Limit.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!location.trim()) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide a Location.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!callTime) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please select a Call Time.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!volunteersLimit || volunteersLimit <= 0) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide a valid Volunteers Limit.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!eventTasks.trim()) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide Event Tasks (What to Expect).",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!callTime) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please select a Call Time.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!volunteerGuidelines.trim()) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please provide Volunteer Guidelines.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!eventTasks.trim()) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide Event Tasks (What to Expect).",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (volunteerOpportunities.length === 0) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please select at least one Volunteer Opportunity.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (!volunteerGuidelines.trim()) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please provide Volunteer Guidelines.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (preferredSkills.length === 0) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please select at least one Preferred Skill.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (volunteerOpportunities.length === 0) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please select at least one Volunteer Opportunity.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (!selectedFile) {
+      setModalConfig({
+        title: "Incomplete",
+        message: "Please upload an Event Poster/Image.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (preferredSkills.length === 0) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please select at least one Preferred Skill.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    // Validate date is not in the past
+    const dateToCheck = eventType === 'single' ? eventDate : eventStartDate;
+    const selectedDate = new Date(dateToCheck);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  if (!selectedFile) {
-    setModalConfig({
-      title: "Incomplete",
-      message: "Please upload an Event Poster/Image.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (selectedDate < today) {
+      setModalConfig({
+        title: "Invalid Date",
+        message: "Event date cannot be in the past.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  // Validate date is not in the past
-  const dateToCheck = eventType === 'single' ? eventDate : eventStartDate;
-  const selectedDate = new Date(dateToCheck);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    // Validate time logic
+    const start = new Date(`1970-01-01T${convertTo24Hour(startTime)}`);
+    const end = new Date(`1970-01-01T${convertTo24Hour(endTime)}`);
+    const call = new Date(`1970-01-01T${convertTo24Hour(callTime)}`);
 
-  if (selectedDate < today) {
-    setModalConfig({
-      title: "Invalid Date",
-      message: "Event date cannot be in the past.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
+    if (start >= end) {
+      setModalConfig({
+        title: "Invalid Time",
+        message: "End time must be after start time.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  // Validate time logic
-  const start = new Date(`1970-01-01T${convertTo24Hour(startTime)}`);
-  const end = new Date(`1970-01-01T${convertTo24Hour(endTime)}`);
-  const call = new Date(`1970-01-01T${convertTo24Hour(callTime)}`);
+    if (call > start) {
+      setModalConfig({
+        title: "Invalid Call Time",
+        message: "Call time must be before or equal to start time.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+      return false;
+    }
 
-  if (start >= end) {
-    setModalConfig({
-      title: "Invalid Time",
-      message: "End time must be after start time.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
-
-  if (call > start) {
-    setModalConfig({
-      title: "Invalid Call Time",
-      message: "Call time must be before or equal to start time.",
-      onCancel: () => setModalConfig(null),
-      type: "alert",
-    });
-    return false;
-  }
-
-  return true;
-};
+    return true;
+  };
 
   // Validate Page 2 (Completion Tasks)
   const validatePage2 = () => {
@@ -1124,69 +1124,70 @@ function CreateEvent() {
         </div>
       ) : (
         // Multiple Event - Date Range & Time (TRUE ONE-LINER)
-<div className="w-full mb-6">
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {/* Event Date Range */}
-    <div>
-      <label className="block font-semibold text-lg text-emerald-800 mb-1">
-        Event Duration <span className="text-red-600">*</span>
-      </label>
-      <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
-        <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
-        <input
-          type="date"
-          value={eventStartDate}
-          onChange={(e) => setEventStartDate(e.target.value)}
-          min={new Date().toISOString().split('T')[0]}
-          className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-        />
-        <span className="text-gray-400 text-sm font-medium flex-shrink-0">—</span>
-        <input
-          type="date"
-          value={eventEndDate}
-          onChange={(e) => setEventEndDate(e.target.value)}
-          min={eventStartDate || new Date().toISOString().split('T')[0]}
-          className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-        />
-      </div>
+        <div className="w-full mb-6">
+        {/* Event Duration & Event Time - Side by side */}
+<div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  {/* Event Duration */}
+  <div className="flex flex-col">
+    <label className="block font-semibold text-lg text-emerald-800 mb-1">
+      Event Duration <span className="text-red-600">*</span>
+    </label>
+    <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
+      <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
+      <input
+        type="date"
+        value={eventStartDate}
+        onChange={(e) => setEventStartDate(e.target.value)}
+        min={new Date().toISOString().split('T')[0]}
+        className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
+      />
+      <span className="text-gray-400 text-sm font-medium flex-shrink-0">—</span>
+      <input
+        type="date"
+        value={eventEndDate}
+        onChange={(e) => setEventEndDate(e.target.value)}
+        min={eventStartDate || new Date().toISOString().split('T')[0]}
+        className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
+      />
     </div>
+  </div>
 
-    {/* Event Time */}
-    <div>
-      <label className="block font-semibold text-lg text-emerald-800 mb-1">
-        Event Time <span className="text-red-600">*</span>
-      </label>
-      <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
-        <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-        <select
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-        >
-          <option value="">Start Time</option>
-          {timeOptions.map((time) => (
-            <option key={`start-${time.value}`} value={time.value}>
-              {time.label}
-            </option>
-          ))}
-        </select>
-        <span className="text-gray-400 text-sm flex-shrink-0">—</span>
-        <select
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-        >
-          <option value="">End Time</option>
-          {timeOptions.map((time) => (
-            <option key={`end-${time.value}`} value={time.value}>
-              {time.label}
-            </option>
-          ))}
-        </select>
-      </div>
+  {/* Event Time */}
+  <div className="flex flex-col">
+    <label className="block font-semibold text-lg text-emerald-800 mb-1">
+      Event Time <span className="text-red-600">*</span>
+    </label>
+    <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
+      <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
+      <select
+        value={startTime}
+        onChange={(e) => setStartTime(e.target.value)}
+        className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
+      >
+        <option value="">Start Time</option>
+        {timeOptions.map((time) => (
+          <option key={`start-${time.value}`} value={time.value}>
+            {time.label}
+          </option>
+        ))}
+      </select>
+      <span className="text-gray-400 text-sm flex-shrink-0">—</span>
+      <select
+        value={endTime}
+        onChange={(e) => setEndTime(e.target.value)}
+        className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
+      >
+        <option value="">End Time</option>
+        {timeOptions.map((time) => (
+          <option key={`end-${time.value}`} value={time.value}>
+            {time.label}
+          </option>
+        ))}
+      </select>
     </div>
   </div>
 </div>
+        </div>
       )}
 
       {/* Location with Google Maps Autocomplete */}
@@ -1243,47 +1244,46 @@ function CreateEvent() {
         </p>
       </div>
 
-      {/* Volunteers Limit & Call Time - ONE LINER */}
-<div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-  {/* Volunteers Limit */}
-  <div className="flex flex-col">
-    <label className="block font-semibold text-lg text-emerald-800 mb-1">
-      Volunteers Limit <span className="text-red-600">*</span>
-    </label>
-    <input
-      type="number"
-      placeholder="Enter Number of Volunteers"
-      value={volunteersLimit}
-      onChange={(e) => setVolunteersLimit(e.target.value)}
-      min="1"
-      className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 bg-white text-gray-700"
-      style={{ height: "42px" }}
-    />
-  </div>
-
-  {/* Call Time */}
-  <div className="flex flex-col">
-    <label className="block font-semibold text-lg text-emerald-800 mb-1">
-      Call Time <span className="text-red-600">*</span>
-    </label>
-    <div className="flex items-center border bg-white border-gray-300 rounded-lg px-4 gap-2" style={{ height: "42px" }}>
-      <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-      <select
-        value={callTime}
-        onChange={(e) => setCallTime(e.target.value)}
-        className="flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
-      >
-        <option value="">Select Time</option>
-        {timeOptions.map((time) => (
-          <option key={`call-${time.value}`} value={time.value}>
-            {time.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
-</div>
-
+      {/* Volunteers Limit & Call Time - Side by side */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* Volunteers Limit */}
+              <div className="flex flex-col">
+                <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                  Volunteers Limit <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="Enter Number of Volunteers"
+                  value={volunteersLimit}
+                  onChange={(e) => setVolunteersLimit(e.target.value)}
+                  min="1"
+                  className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 py-2 bg-white text-gray-700"
+                />
+              </div>
+      
+              {/* Call Time */}
+              <div className="flex flex-col">
+                <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                  Call Time <span className="text-red-600">*</span>
+                </label>
+                <div className="flex items-center border bg-white border-gray-300 rounded px-4 py-2">
+                  <img src={TimeIcon} alt="Time" className="w-5 h-5 mr-2" />
+                  <select
+                    value={callTime}
+                    onChange={(e) => setCallTime(e.target.value)}
+                    className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700"
+                  >
+                    <option value="">Select Time</option>
+                    {timeOptions.map((time) => (
+                      <option key={`call-${time.value}`} value={time.value}>
+                        {time.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            
       {/* Event Tasks */}
       <div className="mb-4">
         <label className="block font-semibold text-lg text-emerald-800 mb-1">
@@ -1404,8 +1404,8 @@ function CreateEvent() {
                       className="sr-only"
                     />
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${volunteerOpportunities.includes(option)
-                        ? 'bg-emerald-600 border-emerald-600'
-                        : 'border-gray-300 group-hover:border-emerald-400'
+                      ? 'bg-emerald-600 border-emerald-600'
+                      : 'border-gray-300 group-hover:border-emerald-400'
                       }`}>
                       {volunteerOpportunities.includes(option) && (
                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -1414,8 +1414,8 @@ function CreateEvent() {
                       )}
                     </div>
                     <span className={`ml-3 text-sm group-hover:text-emerald-800 transition-all duration-200 ${volunteerOpportunities.includes(option)
-                        ? 'text-emerald-800 font-bold'
-                        : 'text-gray-700 font-normal'
+                      ? 'text-emerald-800 font-bold'
+                      : 'text-gray-700 font-normal'
                       }`}>
                       {option}
                     </span>
@@ -1451,8 +1451,8 @@ function CreateEvent() {
                       className="sr-only"
                     />
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${preferredSkills.includes(skill)
-                        ? 'bg-emerald-600 border-emerald-600'
-                        : 'border-gray-300 group-hover:border-emerald-400'
+                      ? 'bg-emerald-600 border-emerald-600'
+                      : 'border-gray-300 group-hover:border-emerald-400'
                       }`}>
                       {preferredSkills.includes(skill) && (
                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -1461,8 +1461,8 @@ function CreateEvent() {
                       )}
                     </div>
                     <span className={`ml-3 text-sm group-hover:text-emerald-800 transition-all duration-200 ${preferredSkills.includes(skill)
-                        ? 'text-emerald-800 font-bold'
-                        : 'text-gray-700 font-normal'
+                      ? 'text-emerald-800 font-bold'
+                      : 'text-gray-700 font-normal'
                       }`}>
                       {skill}
                     </span>
@@ -1527,16 +1527,16 @@ function CreateEvent() {
                   <span className="text-red-600">*</span>
                 </h4>
                 {eventType === 'multiple' && tasksToRender.length > 1 && (
-                 <button
-  type="button"
-  onClick={(e) => {
-    e.preventDefault();
-    removeDynamicTask(task.id);
-  }}
-  className="text-red-600 hover:text-red-800 text-sm font-medium cursor-pointer bg-red-50 px-3 py-1 rounded"
->
-  Remove
-</button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      removeDynamicTask(task.id);
+                    }}
+                    className="text-red-600 hover:text-red-800 text-sm font-medium cursor-pointer bg-red-50 px-3 py-1 rounded"
+                  >
+                    Remove
+                  </button>
                 )}
               </div>
 
@@ -1655,15 +1655,15 @@ function CreateEvent() {
             </div>
           ))}
         </div>
-         {eventType === 'multiple' && (
-        <button
-          type="button"
-          onClick={addDynamicTask}
-          className="w-full bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-all duration-200 mb-6 cursor-pointer font-semibold"
-        >
-          + Add Another Task
-        </button>
-      )}
+        {eventType === 'multiple' && (
+          <button
+            type="button"
+            onClick={addDynamicTask}
+            className="w-full bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-all duration-200 mb-6 cursor-pointer font-semibold"
+          >
+            + Add Another Task
+          </button>
+        )}
 
         {/* Step 2 Buttons */}
         <div className="flex justify-between">
@@ -1685,14 +1685,14 @@ function CreateEvent() {
   };
 
   const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const month = String(date.getMonth() + 1).padStart(2, '0'); 
-  const day = String(date.getDate()).padStart(2, '0');        
-  const year = date.getFullYear();                            
-  
-  return `${month}-${day}-${year}`; 
-};
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${month}-${day}-${year}`;
+  };
 
   // Render Step 3 
   const renderStep3 = () => (
@@ -1707,163 +1707,163 @@ function CreateEvent() {
       </p>
 
       <div className="space-y-6">
-  {/* Event Details Section */}
-  <div className="bg-white rounded-lg p-4 border border-emerald-300">
-    <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
-      Event Details
-    </h4>
+        {/* Event Details Section */}
+        <div className="bg-white rounded-lg p-4 border border-emerald-300">
+          <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
+            Event Details
+          </h4>
 
-    {/* Upper Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <p className="text-sm text-emerald-600 font-medium">Event Title:</p>
-        <p className="text-gray-800">{eventTitle}</p>
-      </div>
-      <div>
-        <p className="text-sm text-emerald-600 font-medium">
-          {eventType === 'multiple' ? 'Event Duration' : 'Event Date'}
-        </p>
-        <p className="text-gray-800">
-          {eventType === 'multiple' 
-            ? `${formatDate(eventStartDate)} to ${formatDate(eventEndDate)}` 
-            : formatDate(eventDate)}
-        </p>
-      </div>
-      <div>
-        <p className="text-sm text-emerald-600 font-medium">Time:</p>
-        <p className="text-gray-800">{startTime} - {endTime}</p>
-      </div>
-      <div>
-        <p className="text-sm text-emerald-600 font-medium">Location:</p>
-        <p className="text-gray-800">{location}</p>
-      </div>
-      <div>
-        <p className="text-sm text-emerald-600 font-medium">Volunteers Limit:</p>
-        <p className="text-gray-800">{volunteersLimit}</p>
-      </div>
-      <div>
-        <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
-        <p className="text-gray-800">{callTime}</p>
-      </div>
-    </div>
+          {/* Upper Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-emerald-600 font-medium">Event Title:</p>
+              <p className="text-gray-800">{eventTitle}</p>
+            </div>
+            <div>
+              <p className="text-sm text-emerald-600 font-medium">
+                {eventType === 'multiple' ? 'Event Duration' : 'Event Date'}
+              </p>
+              <p className="text-gray-800">
+                {eventType === 'multiple'
+                  ? `${formatDate(eventStartDate)} to ${formatDate(eventEndDate)}`
+                  : formatDate(eventDate)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-emerald-600 font-medium">Time:</p>
+              <p className="text-gray-800">{startTime} - {endTime}</p>
+            </div>
+            <div>
+              <p className="text-sm text-emerald-600 font-medium">Location:</p>
+              <p className="text-gray-800">{location}</p>
+            </div>
+            <div>
+              <p className="text-sm text-emerald-600 font-medium">Volunteers Limit:</p>
+              <p className="text-gray-800">{volunteersLimit}</p>
+            </div>
+            <div>
+              <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
+              <p className="text-gray-800">{callTime}</p>
+            </div>
+          </div>
 
-    {/* Divider / Gap */}
-    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-emerald-100 pt-4">
-      
-      {/* LEFT SIDE: Long Descriptions*/}
-      <div className="space-y-4">
-        <div>
-          <p className="text-sm text-emerald-600 font-medium">Description:</p>
-          <p className="text-gray-800 text-sm">{eventDescription}</p>
-        </div>
+          {/* Divider / Gap */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-emerald-100 pt-4">
 
-        <div>
-          <p className="text-sm text-emerald-600 font-medium">Objectives:</p>
-          <p className="text-gray-800 text-sm">{eventObjectives}</p>
-        </div>
-
-        <div>
-          <p className="text-sm text-emerald-600 font-medium">What to Expect:</p>
-          <p className="text-gray-800 text-sm">{eventTasks}</p>
-        </div>
-
-        <div>
-          <p className="text-sm text-emerald-600 font-medium">Volunteer Guidelines:</p>
-          <p className="text-gray-800 text-sm">{volunteerGuidelines}</p>
-        </div>
-
-        <div>
-          <p className="text-sm text-emerald-600 font-medium">Volunteer Opportunities:</p>
-          <p className="text-gray-800 text-sm">{volunteerOpportunities.join(", ")}</p>
-        </div>
-
-        <div>
-          <p className="text-sm text-emerald-600 font-medium">Preferred Skills:</p>
-          <p className="text-gray-800 text-sm">{preferredSkills.join(", ")}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col">
-  <p className="text-sm text-emerald-600 font-medium mb-2">Event Image:</p>
-  {imagePreview ? (
-    <div className="flex justify-center items-center bg-gray-50 rounded-lg p-2 min-h-[150px]">
-      <img
-  src={imagePreview}
-  alt="Event"
-  onLoad={handleImageLoad}
-  /* Pinagsamang logic ng orientation at custom class */
-  className="event-image-preview object-contain rounded shadow-md mx-auto max-w-full"
-  style={{ 
-    maxHeight: '180px', // Sakto lang na laki
-    width: 'auto',
-    /* Automatic border logic */
-    border: imageOrientation === "portrait" 
-      ? "2px solid #b0b0b0"  // Makapal at dark green kung Portrait
-      : "2px solid #b0b0b0"   // Manipis at light green kung Landscape
-  }}
-/>
-    </div>
-    
-  ) : (
-    <div className="border border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center text-gray-400 text-sm italic">
-      No image uploaded
-    </div>
-  )}
-</div>
-
-    </div>
-  </div>
-</div>
-
-   {/* Completion Tasks Section */}
-<div className="bg-white rounded-lg p-4 border border-emerald-300 mt-6">
-  <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
-    {eventType === 'multiple' ? 'Event Tasks' : 'Completion Tasks'}
-  </h4>
-  <div className="space-y-4">
-    {(eventType === 'multiple' ? dynamicTasks : completionTasks).map((task, index) => (
-      <div key={task.id} className="border border-emerald-200 rounded-lg p-4 bg-emerald-50">
-        <div className="flex items-start">
-          <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
-            {index + 1}
-          </span>
-          <div className="flex-1">
-            <h5 className="font-semibold text-emerald-800 mb-2">
-              {eventType === 'multiple' ? task.taskName : `Task ${index + 1}`}
-            </h5>
-            
-            {eventType === 'multiple' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
-                {/* Clearer Start Schedule */}
-                <div>
-                  <p className="text-gray-700">
-                    <span className="font-bold text-emerald-700">Start Date:</span> {formatDate(task.startDate)}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-bold text-emerald-700">End Date:</span> {formatDate(task.endDate)}
-                  </p>
-                </div>
-
-                {/* Clearer End Schedule */}
-                <div>
-                  <p className="text-gray-700">
-                    <span className="font-bold text-emerald-700">Start Time:</span> {task.startTime}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-bold text-emerald-700">End Time:</span> {task.endTime}
-                  </p>
-                </div>
+            {/* LEFT SIDE: Long Descriptions*/}
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Description:</p>
+                <p className="text-gray-800 text-sm">{eventDescription}</p>
               </div>
-            )}
-            
-            <p className="text-emerald-800 text-[11px] font-bold uppercase mb-1">Task Description:</p>
-            <p className="text-gray-700 text-sm italic">{task.description}</p>
+
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Objectives:</p>
+                <p className="text-gray-800 text-sm">{eventObjectives}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">What to Expect:</p>
+                <p className="text-gray-800 text-sm">{eventTasks}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Volunteer Guidelines:</p>
+                <p className="text-gray-800 text-sm">{volunteerGuidelines}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Volunteer Opportunities:</p>
+                <p className="text-gray-800 text-sm">{volunteerOpportunities.join(", ")}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Preferred Skills:</p>
+                <p className="text-gray-800 text-sm">{preferredSkills.join(", ")}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <p className="text-sm text-emerald-600 font-medium mb-2">Event Image:</p>
+              {imagePreview ? (
+                <div className="flex justify-center items-center bg-gray-50 rounded-lg p-2 min-h-[150px]">
+                  <img
+                    src={imagePreview}
+                    alt="Event"
+                    onLoad={handleImageLoad}
+                    /* Pinagsamang logic ng orientation at custom class */
+                    className="event-image-preview object-contain rounded shadow-md mx-auto max-w-full"
+                    style={{
+                      maxHeight: '180px', // Sakto lang na laki
+                      width: 'auto',
+                      /* Automatic border logic */
+                      border: imageOrientation === "portrait"
+                        ? "2px solid #b0b0b0"  // Makapal at dark green kung Portrait
+                        : "2px solid #b0b0b0"   // Manipis at light green kung Landscape
+                    }}
+                  />
+                </div>
+
+              ) : (
+                <div className="border border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center text-gray-400 text-sm italic">
+                  No image uploaded
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
-    ))}
-  </div>
-</div>
+
+      {/* Completion Tasks Section */}
+      <div className="bg-white rounded-lg p-4 border border-emerald-300 mt-6">
+        <h4 className="font-semibold text-emerald-800 mb-3 text-lg border-b border-emerald-200 pb-2">
+          {eventType === 'multiple' ? 'Event Tasks' : 'Completion Tasks'}
+        </h4>
+        <div className="space-y-4">
+          {(eventType === 'multiple' ? dynamicTasks : completionTasks).map((task, index) => (
+            <div key={task.id} className="border border-emerald-200 rounded-lg p-4 bg-emerald-50">
+              <div className="flex items-start">
+                <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
+                  {index + 1}
+                </span>
+                <div className="flex-1">
+                  <h5 className="font-semibold text-emerald-800 mb-2">
+                    {eventType === 'multiple' ? task.taskName : `Task ${index + 1}`}
+                  </h5>
+
+                  {eventType === 'multiple' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
+                      {/* Clearer Start Schedule */}
+                      <div>
+                        <p className="text-gray-700">
+                          <span className="font-bold text-emerald-700">Start Date:</span> {formatDate(task.startDate)}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-bold text-emerald-700">End Date:</span> {formatDate(task.endDate)}
+                        </p>
+                      </div>
+
+                      {/* Clearer End Schedule */}
+                      <div>
+                        <p className="text-gray-700">
+                          <span className="font-bold text-emerald-700">Start Time:</span> {task.startTime}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-bold text-emerald-700">End Time:</span> {task.endTime}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-emerald-800 text-[11px] font-bold uppercase mb-1">Task Description:</p>
+                  <p className="text-gray-700 text-sm italic">{task.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Step 3 Buttons */}
       <div className="flex justify-between mt-6">
