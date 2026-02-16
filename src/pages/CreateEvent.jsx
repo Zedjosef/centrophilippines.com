@@ -1123,70 +1123,70 @@ function CreateEvent() {
           </div>
         </div>
       ) : (
-        // Multiple Event - Date Range & Time (fixed one-liner)
-        <div className="w-full mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Event Date Range */}
-            <div>
-              <label className="block font-semibold text-lg text-emerald-800 mb-1">
-                Event Duration <span className="text-red-600">*</span>
-              </label>
-              <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
-                <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
-                <input
-                  type="date"
-                  value={eventStartDate}
-                  onChange={(e) => setEventStartDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-                />
-                <span className="text-gray-400 text-xs font-medium flex-shrink-0">to</span>
-                <input
-                  type="date"
-                  value={eventEndDate}
-                  onChange={(e) => setEventEndDate(e.target.value)}
-                  min={eventStartDate || new Date().toISOString().split('T')[0]}
-                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-                />
-              </div>
-            </div>
+        // Multiple Event - Date Range & Time (TRUE ONE-LINER)
+<div className="w-full mb-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* Event Date Range */}
+    <div>
+      <label className="block font-semibold text-lg text-emerald-800 mb-1">
+        Event Duration <span className="text-red-600">*</span>
+      </label>
+      <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
+        <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
+        <input
+          type="date"
+          value={eventStartDate}
+          onChange={(e) => setEventStartDate(e.target.value)}
+          min={new Date().toISOString().split('T')[0]}
+          className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
+        />
+        <span className="text-gray-400 text-sm font-medium flex-shrink-0">—</span>
+        <input
+          type="date"
+          value={eventEndDate}
+          onChange={(e) => setEventEndDate(e.target.value)}
+          min={eventStartDate || new Date().toISOString().split('T')[0]}
+          className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
+        />
+      </div>
+    </div>
 
-            {/* Event Time */}
-            <div>
-              <label className="block font-semibold text-lg text-emerald-800 mb-1">
-                Event Time <span className="text-red-600">*</span>
-              </label>
-              <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
-                <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-                <select
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-                >
-                  <option value="">Start Time</option>
-                  {timeOptions.map((time) => (
-                    <option key={`start-${time.value}`} value={time.value}>
-                      {time.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="text-gray-400 text-xs flex-shrink-0">—</span>
-                <select
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-                >
-                  <option value="">End Time</option>
-                  {timeOptions.map((time) => (
-                    <option key={`end-${time.value}`} value={time.value}>
-                      {time.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+    {/* Event Time */}
+    <div>
+      <label className="block font-semibold text-lg text-emerald-800 mb-1">
+        Event Time <span className="text-red-600">*</span>
+      </label>
+      <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 gap-2">
+        <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
+        <select
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
+        >
+          <option value="">Start Time</option>
+          {timeOptions.map((time) => (
+            <option key={`start-${time.value}`} value={time.value}>
+              {time.label}
+            </option>
+          ))}
+        </select>
+        <span className="text-gray-400 text-sm flex-shrink-0">—</span>
+        <select
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+          className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
+        >
+          <option value="">End Time</option>
+          {timeOptions.map((time) => (
+            <option key={`end-${time.value}`} value={time.value}>
+              {time.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
       )}
 
       {/* Location with Google Maps Autocomplete */}
@@ -1243,46 +1243,46 @@ function CreateEvent() {
         </p>
       </div>
 
-      {/* Volunteers Limit & Call Time - Side by side */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {/* Volunteers Limit */}
-        <div className="flex flex-col">
-          <label className="block font-semibold text-lg text-emerald-800 mb-1">
-            Volunteers Limit <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="number"
-            placeholder="Enter Number of Volunteers"
-            value={volunteersLimit}
-            onChange={(e) => setVolunteersLimit(e.target.value)}
-            min="1"
-            className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 bg-white text-gray-700"
-            style={{ height: "42px" }}
-          />
-        </div>
+      {/* Volunteers Limit & Call Time - ONE LINER */}
+<div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  {/* Volunteers Limit */}
+  <div className="flex flex-col">
+    <label className="block font-semibold text-lg text-emerald-800 mb-1">
+      Volunteers Limit <span className="text-red-600">*</span>
+    </label>
+    <input
+      type="number"
+      placeholder="Enter Number of Volunteers"
+      value={volunteersLimit}
+      onChange={(e) => setVolunteersLimit(e.target.value)}
+      min="1"
+      className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 bg-white text-gray-700"
+      style={{ height: "42px" }}
+    />
+  </div>
 
-        {/* Call Time */}
-        <div className="flex flex-col">
-          <label className="block font-semibold text-lg text-emerald-800 mb-1">
-            Call Time <span className="text-red-600">*</span>
-          </label>
-          <div className="flex items-center border bg-white border-gray-300 rounded-lg px-4 gap-2" style={{ height: "42px" }}>
-            <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-            <select
-              value={callTime}
-              onChange={(e) => setCallTime(e.target.value)}
-              className="flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
-            >
-              <option value="">Select Time</option>
-              {timeOptions.map((time) => (
-                <option key={`call-${time.value}`} value={time.value}>
-                  {time.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+  {/* Call Time */}
+  <div className="flex flex-col">
+    <label className="block font-semibold text-lg text-emerald-800 mb-1">
+      Call Time <span className="text-red-600">*</span>
+    </label>
+    <div className="flex items-center border bg-white border-gray-300 rounded-lg px-4 gap-2" style={{ height: "42px" }}>
+      <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
+      <select
+        value={callTime}
+        onChange={(e) => setCallTime(e.target.value)}
+        className="flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
+      >
+        <option value="">Select Time</option>
+        {timeOptions.map((time) => (
+          <option key={`call-${time.value}`} value={time.value}>
+            {time.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
 
       {/* Event Tasks */}
       <div className="mb-4">
@@ -1571,15 +1571,15 @@ function CreateEvent() {
                             value={task.startDate}
                             onChange={(e) => handleDynamicTaskChange(task.id, 'startDate', e.target.value)}
                             min={new Date().toISOString().split('T')[0]}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-xs min-w-0"
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
                           />
-                          <span className="text-gray-400 text-xs flex-shrink-0">→</span>
+                          <span className="text-gray-400 text-sm flex-shrink-0">—</span>
                           <input
                             type="date"
                             value={task.endDate}
                             onChange={(e) => handleDynamicTaskChange(task.id, 'endDate', e.target.value)}
                             min={task.startDate || new Date().toISOString().split('T')[0]}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-xs min-w-0"
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
                           />
                         </div>
                       </div>
@@ -1594,22 +1594,22 @@ function CreateEvent() {
                           <select
                             value={task.startTime}
                             onChange={(e) => handleDynamicTaskChange(task.id, 'startTime', e.target.value)}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-xs min-w-0"
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
                           >
-                            <option value="">Start</option>
+                            <option value="">Start Time</option>
                             {timeOptions.map((time) => (
                               <option key={`task${task.id}-start-${time.value}`} value={time.value}>
                                 {time.label}
                               </option>
                             ))}
                           </select>
-                          <span className="text-gray-400 text-xs flex-shrink-0">→</span>
+                          <span className="text-gray-400 text-sm flex-shrink-0">—</span>
                           <select
                             value={task.endTime}
                             onChange={(e) => handleDynamicTaskChange(task.id, 'endTime', e.target.value)}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-xs min-w-0"
+                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
                           >
-                            <option value="">End</option>
+                            <option value="">End Time</option>
                             {timeOptions.map((time) => (
                               <option key={`task${task.id}-end-${time.value}`} value={time.value}>
                                 {time.label}
