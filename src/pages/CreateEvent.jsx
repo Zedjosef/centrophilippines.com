@@ -1140,15 +1140,15 @@ function CreateEvent() {
                     value={eventStartDate}
                     onChange={(e) => setEventStartDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-xs min-w-0"
+                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
                   />
-                  <span className="text-gray-400 text-xs flex-shrink-0">→</span>
+                  <span className="text-gray-400 text-sm flex-shrink-0">—</span>
                   <input
                     type="date"
                     value={eventEndDate}
                     onChange={(e) => setEventEndDate(e.target.value)}
                     min={eventStartDate || new Date().toISOString().split('T')[0]}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-xs min-w-0"
+                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
                   />
                 </div>
               </div>
@@ -1163,22 +1163,22 @@ function CreateEvent() {
                   <select
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-xs min-w-0"
+                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
                   >
-                    <option value="">Start</option>
+                    <option value="">Start Time</option>
                     {timeOptions.map((time) => (
                       <option key={`start-${time.value}`} value={time.value}>
                         {time.label}
                       </option>
                     ))}
                   </select>
-                  <span className="text-gray-400 text-xs flex-shrink-0">→</span>
+                  <span className="text-gray-400 text-sm flex-shrink-0">—</span>
                   <select
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-xs min-w-0"
+                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
                   >
-                    <option value="">End</option>
+                    <option value="">End Time</option>
                     {timeOptions.map((time) => (
                       <option key={`end-${time.value}`} value={time.value}>
                         {time.label}
