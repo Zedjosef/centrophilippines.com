@@ -736,18 +736,27 @@ function CreateEvent() {
       )
     );
   };
-  // Add after handleTaskChange function
+// Updated addDynamicTask with 15-task limit
   const addDynamicTask = () => {
-    const newId = Math.max(...dynamicTasks.map(t => t.id), 0) + 1;
-    setDynamicTasks(prev => [...prev, {
-      id: newId,
-      taskName: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-      startTime: "",
-      endTime: ""
-    }]);
+    if (dynamicTasks.length < 15) {
+      const newId = Math.max(...dynamicTasks.map(t => t.id), 0) + 1;
+      setDynamicTasks(prev => [...prev, {
+        id: newId,
+        taskName: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        startTime: "",
+        endTime: ""
+      }]);
+    } else {
+      setModalConfig({
+        title: "Limit Reached",
+        message: "You can only create up to 15 tasks for this event.",
+        onCancel: () => setModalConfig(null),
+        type: "alert",
+      });
+    }
   };
 
   const removeDynamicTask = (id) => {
@@ -886,8 +895,7 @@ function CreateEvent() {
     }
   };
 
-  // Create task report entry - only use description fields
-  const createTaskReport = async (eventId, taskId) => {
+const createTaskReport = async (eventId, taskId) => {
     try {
       const taskData = {
         task_id: taskId,
@@ -895,15 +903,46 @@ function CreateEvent() {
         ngo_id: ngoCode,
       };
 
+      // Determine which list of tasks to use
       const tasksToUse = eventType === 'multiple' ? dynamicTasks : completionTasks;
 
+      // Map indices (0-14) to your database column suffixes
+      const columnSuffixes = [
+        "one", "two", "three", "four", "five", 
+        "six", "seven", "eight", "nine", "ten", 
+        "eleven", "twelve", "thirteen", "fourteen", "fifteen"
+      ];
+
       tasksToUse.forEach((task, index) => {
-        if (index === 0) {
-          taskData.description_one = task.description;
-        } else if (index === 1) {
-          taskData.description_two = task.description;
-        } else if (index === 2) {
-          taskData.description_three = task.description;
+        // Ensure we don't exceed 15 tasks
+        if (index < columnSuffixes.length) {
+          const suffix = columnSuffixes[index];
+          
+          // --- 1. SET DESCRIPTION ---
+          if (eventType === 'multiple') {
+             // Format: "Task Name: Description"
+            taskData[`description_${suffix}`] = `${task.taskName}: ${task.description}`; 
+          } else {
+            taskData[`description_${suffix}`] = task.description;
+          }
+
+          // --- 2. SET DEADLINE (Date + Time) ---
+          // Only necessary for Multiple Events which have dates
+          if (eventType === 'multiple' && task.endDate) {
+            
+            // task.endDate is already "YYYY-MM-DD" from the input
+            // task.endTime is "HH:MM" (or similar)
+            
+            // We combine them for the timestamp column
+            // Default to end of day (23:59:00) if no time is provided
+            const timePart = task.endTime ? task.endTime : "23:59:00";
+            
+            // Ensure time format is HH:MM:SS
+            const cleanTime = timePart.length === 5 ? `${timePart}:00` : timePart;
+            
+            // Result: "2026-12-10 14:30:00"
+            taskData[`deadline_${suffix}`] = `${task.endDate} ${cleanTime}`;
+          }
         }
       });
 
@@ -939,19 +978,21 @@ function CreateEvent() {
       }
 
       // Create event data (removed completion_tasks field)
-      const eventData = {
+const eventData = {
         event_id: eventId,
         ngo_id: ngoCode,
         event_title: eventTitle.trim(),
-        event_type: eventType,
-        date: eventDate,
+        
+        // FIX: If it's a single event, use eventDate. If multiple, use eventStartDate.
+        date: eventType === 'single' ? eventDate : eventStartDate, 
+        
         time_start: convertTo24Hour(startTime),
         time_end: convertTo24Hour(endTime),
         description: eventDescription.trim(),
         event_objectives: eventObjectives.trim(),
         location: location.trim(),
         volunteers_limit: parseInt(volunteersLimit),
-        call_time: convertTo24Hour(callTime),
+        call_time: convertTo24Hour(callTime) || null, // Added || null just in case it's empty
         what_expect: eventTasks.trim(),
         volunteer_guidelines: volunteerGuidelines.trim(),
         volunteer_opportunities: volunteerOpportunities.join("-"),
@@ -1659,7 +1700,7 @@ function CreateEvent() {
             </div>
           ))}
         </div>
-        {eventType === 'multiple' && (
+{eventType === 'multiple' && dynamicTasks.length < 15 && (
           <button
             type="button"
             onClick={addDynamicTask}
@@ -1667,6 +1708,13 @@ function CreateEvent() {
           >
             + Add Another Task
           </button>
+        )}
+        
+        {/* Optional: Visual indicator that limit is reached */}
+        {eventType === 'multiple' && dynamicTasks.length >= 15 && (
+           <p className="text-center text-gray-500 mb-6 italic">
+             Maximum of 15 tasks reached.
+           </p>
         )}
 
         {/* Step 2 Buttons */}
@@ -1998,20 +2046,20 @@ function CreateEvent() {
           )}
 
           {/* CSS Animations */}
-          <style jsx>{`
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
+<style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
 
-          @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-          }
+            @keyframes scaleIn {
+              from { opacity: 0; transform: scale(0.9); }
+              to { opacity: 1; transform: scale(1); }
+            }
 
-          .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
-          .animate-scaleIn { animation: scaleIn 0.2s ease-out; }
-        `}</style>
+            .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+            .animate-scaleIn { animation: scaleIn 0.2s ease-out; }
+          `}</style>
         </div>
       )}
     </>
