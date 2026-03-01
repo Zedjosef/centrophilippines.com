@@ -896,69 +896,58 @@ function CreateEvent() {
   };
 
 const createTaskReport = async (eventId, taskId) => {
-    try {
-      const taskData = {
-        task_id: taskId,
-        event_id: eventId,
-        ngo_id: ngoCode,
-      };
+  try {
+    const taskData = {
+      task_id: taskId,
+      event_id: eventId,
+      ngo_id: ngoCode,
+    };
 
-      // Determine which list of tasks to use
-      const tasksToUse = eventType === 'multiple' ? dynamicTasks : completionTasks;
+    const tasksToUse = eventType === 'multiple' ? dynamicTasks : completionTasks;
 
-      // Map indices (0-14) to your database column suffixes
-      const columnSuffixes = [
-        "one", "two", "three", "four", "five", 
-        "six", "seven", "eight", "nine", "ten", 
-        "eleven", "twelve", "thirteen", "fourteen", "fifteen"
-      ];
+    const columnSuffixes = [
+      "one", "two", "three", "four", "five",
+      "six", "seven", "eight", "nine", "ten",
+      "eleven", "twelve", "thirteen", "fourteen", "fifteen"
+    ];
 
-      tasksToUse.forEach((task, index) => {
-        // Ensure we don't exceed 15 tasks
-        if (index < columnSuffixes.length) {
-          const suffix = columnSuffixes[index];
-          
-          // --- 1. SET DESCRIPTION ---
-          if (eventType === 'multiple') {
-             // Format: "Task Name: Description"
-            taskData[`description_${suffix}`] = `${task.taskName}: ${task.description}`; 
-          } else {
-            taskData[`description_${suffix}`] = task.description;
+    tasksToUse.forEach((task, index) => {
+      if (index < columnSuffixes.length) {
+        const suffix = columnSuffixes[index];
+
+        if (eventType === 'multiple') {
+          taskData[`description_${suffix}`] = `${task.taskName}: ${task.description}`;
+        } else {
+          taskData[`description_${suffix}`] = task.description;
+        }
+
+        // Save start and end as full timestamps (task_start_one, task_end_one, etc.)
+        if (eventType === 'multiple') {
+          if (task.startDate && task.startTime) {
+            // task.startTime is in "8:00 AM" format — convert to 24hr first
+            const cleanStart = convertTo24Hour(task.startTime);
+            taskData[`task_start_${suffix}`] = `${task.startDate} ${cleanStart}`;
           }
-
-          // --- 2. SET DEADLINE (Date + Time) ---
-          // Only necessary for Multiple Events which have dates
-          if (eventType === 'multiple' && task.endDate) {
-            
-            // task.endDate is already "YYYY-MM-DD" from the input
-            // task.endTime is "HH:MM" (or similar)
-            
-            // We combine them for the timestamp column
-            // Default to end of day (23:59:00) if no time is provided
-            const timePart = task.endTime ? task.endTime : "23:59:00";
-            
-            // Ensure time format is HH:MM:SS
-            const cleanTime = timePart.length === 5 ? `${timePart}:00` : timePart;
-            
-            // Result: "2026-12-10 14:30:00"
-            taskData[`deadline_${suffix}`] = `${task.endDate} ${cleanTime}`;
+          if (task.endDate && task.endTime) {
+            const cleanEnd = convertTo24Hour(task.endTime);
+            taskData[`task_end_${suffix}`] = `${task.endDate} ${cleanEnd}`;
           }
         }
-      });
+      }
+    });
 
-      const { data, error } = await supabase
-        .from("Task_Reports")
-        .insert([taskData])
-        .select();
+    const { data, error } = await supabase
+      .from("Task_Reports")
+      .insert([taskData])
+      .select();
 
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Error creating task report:", error);
-      throw error;
-    }
-  };
-
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error creating task report:", error);
+    throw error;
+  }
+};
 
 
   // Create event in database
@@ -982,10 +971,11 @@ const eventData = {
         event_id: eventId,
         ngo_id: ngoCode,
         event_title: eventTitle.trim(),
-        
+        event_type: eventType,  
         // FIX: If it's a single event, use eventDate. If multiple, use eventStartDate.
         date: eventType === 'single' ? eventDate : eventStartDate, 
-        
+        event_end_date: eventType === 'multiple' ? eventEndDate : null, // ← BAGO
+
         time_start: convertTo24Hour(startTime),
         time_end: convertTo24Hour(endTime),
         description: eventDescription.trim(),
