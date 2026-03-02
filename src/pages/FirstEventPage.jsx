@@ -129,11 +129,13 @@ function FilePreviewModal({ isOpen, onClose, files, currentIndex, setCurrentInde
           )}
         </div>
 
-        {/* Footer */}
+{/* Footer */}
         <div className="p-4 border-t bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">File {currentIndex + 1} of {files.length}</span>
+              <span className="text-sm text-gray-600 font-bold bg-gray-200 px-3 py-1 rounded-full">
+                File {currentIndex + 1} of {files.length}
+              </span>
               {isImage && (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setZoom((p) => Math.max(p - 0.25, 0.5))} disabled={zoom <= 0.5}
@@ -151,11 +153,34 @@ function FilePreviewModal({ isOpen, onClose, files, currentIndex, setCurrentInde
                 </div>
               )}
             </div>
-            <button onClick={onClose} className="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white text-gray-700 hover:bg-red-50 hover:border-red-500 hover:text-red-700 font-medium text-sm transition-all">
-              Close
-            </button>
+            
+            {/* NEW: Navigation Buttons */}
+            <div className="flex items-center gap-3">
+              {files.length > 1 && (
+                <div className="flex items-center gap-2 mr-4 bg-gray-200 p-1 rounded-lg">
+                  <button 
+                    onClick={() => setCurrentIndex(prev => Math.max(prev - 1, 0))} 
+                    disabled={currentIndex === 0}
+                    className={`p-1.5 rounded transition-all ${currentIndex === 0 ? "text-gray-400 cursor-not-allowed" : "bg-white shadow text-gray-700 hover:text-emerald-700 cursor-pointer"}`}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => setCurrentIndex(prev => Math.min(prev + 1, files.length - 1))} 
+                    disabled={currentIndex === files.length - 1}
+                    className={`p-1.5 rounded transition-all ${currentIndex === files.length - 1 ? "text-gray-400 cursor-not-allowed" : "bg-white shadow text-gray-700 hover:text-emerald-700 cursor-pointer"}`}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+              
+              <button onClick={onClose} className="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white text-gray-700 hover:bg-red-50 hover:border-red-500 hover:text-red-700 font-medium text-sm transition-all cursor-pointer">
+                Close
+              </button>
+            </div>
           </div>
-        </div>
+          </div>
       </div>
       <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}.animate-fadeIn{animation:fadeIn 0.2s ease-out}`}</style>
     </div>
@@ -430,16 +455,23 @@ function TaskDetailPanel({ eventId, eventTitle, taskNumber, taskReport, voluntee
     }
   };
 
-  const handleFileClick = (volunteer) => {
-    const url = volunteer.submission?.[taskKey];
-    if (!url) return;
-    setPreviewFiles([{
+const handleFileClick = (volunteer, clickedIndex = 0) => {
+    const rawUrlString = volunteer.submission?.[taskKey];
+    if (!rawUrlString) return;
+
+    // SAFE SPLIT: Split by "_https://" to avoid breaking file names that contain underscores
+    const parts = rawUrlString.split("_https://");
+    const urls = parts.map((part, i) => i === 0 ? part : "https://" + part).filter(u => u.trim());
+    
+    const previewFilesArray = urls.map(url => ({
       url,
       fileName: getFileNameFromUrl(url),
       taskName: rawDesc,
       fileType: getFileType(url),
-    }]);
-    setCurrentFileIndex(0);
+    }));
+
+    setPreviewFiles(previewFilesArray);
+    setCurrentFileIndex(clickedIndex); // Opens exactly the file you clicked
     setFilePreviewOpen(true);
   };
 
@@ -626,21 +658,43 @@ function TaskDetailPanel({ eventId, eventTitle, taskNumber, taskReport, voluntee
                       </td>
                       <td className="px-4 py-2 border border-gray-400 font-medium">{v.volunteer_id}</td>
                       <td className="px-4 py-2 border border-gray-400 font-medium">{v.name}</td>
-                      <td className="px-4 py-2 border border-gray-400 font-medium">
-                        {fileUrl ? (
-                          <button onClick={() => handleFileClick(v)}
-                            className="flex items-center gap-2 mx-auto text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 px-2 py-1 rounded transition-colors cursor-pointer">
-                            {getFileIcon(fileType)}
-                            <span className="underline text-sm">{fileName}</span>
-                          </button>
-                        ) : (
-                          <span className="text-gray-400 italic text-sm">Not submitted</span>
-                        )}
+<td className="px-4 py-2 border border-gray-400 font-medium">
+                        {(() => {
+                          const rawFileUrl = v.submission?.[taskKey];
+                          
+                          // Safe split for the table display
+                          const fileParts = rawFileUrl ? rawFileUrl.split("_https://") : [];
+                          const fileUrls = fileParts.map((part, i) => i === 0 ? part : "https://" + part).filter(u => u.trim());
+
+                          if (fileUrls.length > 0) {
+                            return (
+                              <div className="flex flex-col gap-1.5 items-center">
+                                {fileUrls.map((url, index) => {
+                                  const fileName = getFileNameFromUrl(url);
+                                  const fileType = getFileType(url);
+                                  return (
+                                    <button 
+                                      key={index} 
+                                      onClick={() => handleFileClick(v, index)}
+                                      className="flex items-center gap-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 px-2 py-1 rounded transition-colors cursor-pointer max-w-[200px]"
+                                      title={fileName}
+                                    >
+                                      {getFileIcon(fileType)}
+                                      <span className="underline text-sm truncate">{fileName}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            );
+                          } else {
+                            return <span className="text-gray-400 italic text-sm">Not submitted</span>;
+                          }
+                        })()}
                       </td>
                       <td className="px-4 py-4 border border-gray-400 font-medium">
-                        {v.submission?.status === "ApproveD" ? (
+                        {v.submission?.status === "Approved" ? (
                           <span className="px-4 py-2 rounded-full font-bold text-white text-sm bg-emerald-600">Approved</span>
-                        ) : v.submission?.status === "RejectED" ? (
+                        ) : v.submission?.status === "Rejected" ? (
                           <span className="px-4 py-2 rounded-full font-bold text-white text-sm bg-red-500">Rejected</span>
                         ) : (
                           <div className="flex justify-center gap-2">
