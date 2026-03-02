@@ -13,6 +13,7 @@ export default function ReviewApplicationEventPage() {
   const [selectedEventDetails, setSelectedEventDetails] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [showCentroConfirm, setShowCentroConfirm] = useState(false);
+  const [showJustificationModal, setShowJustificationModal] = useState(false);
 
   const [sortBy, setSortBy] = useState("id");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -92,7 +93,7 @@ const fetchEventApplications = async (eventId) => {
     // If you haven't, remove the .eq("status", "PENDING") line below.
     const { data: teamData, error: teamError } = await supabase
       .from("TeamJoining")
-      .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status")
+      .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status, justification")
       .eq("event_id", eventId)
       .eq("status", "PENDING"); 
 
@@ -126,6 +127,7 @@ const fetchEventApplications = async (eventId) => {
           busy_hours: app.busy_hours,
           application_type: app.application_type,
           members_names: app.members_names || null, // Only exists for teams
+          justification: app.justification || null,
         };
       })
     );
@@ -568,13 +570,23 @@ const fetchEventApplications = async (eventId) => {
 {/* NEW: Team Members Section */}
 {selectedVolunteer.application_type === 'team' && selectedVolunteer.members_names && (
   <>
-    <p className="mt-4 font-bold text-base mb-2 text-emerald-900 border-t pt-4">
-      Team Members
-    </p>
-    <ul className="list-disc pl-5 text-sm text-emerald-900">
-      {/* Assuming the names are separated by commas or dashes */}
-      {selectedVolunteer.members_names.split(/[,|-|_]/).map((name, idx) => (
-        name.trim() ? <li key={idx} className="mb-1">{name.trim()}</li> : null
+    <div className="mt-4 border-t pt-4 flex items-center justify-between mb-2">
+      <p className="font-bold text-base text-emerald-900">
+        Team Members
+      </p>
+      {/* Show button only if a justification exists */}
+      {selectedVolunteer.justification && (
+        <button
+          onClick={() => setShowJustificationModal(true)}
+          className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-1 px-3 rounded-full transition-colors cursor-pointer border border-emerald-300 shadow-sm"
+        >
+          View Justification
+        </button>
+      )}
+    </div>
+    <ul className="list-disc pl-5 text-sm text-emerald-900 space-y-1">
+      {selectedVolunteer.members_names.split('_').map((name, idx) => (
+        name.trim() ? <li key={idx}>{name.trim()}</li> : null
       ))}
     </ul>
   </>
@@ -660,6 +672,53 @@ const fetchEventApplications = async (eventId) => {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+{/* Justification Modal (Fixed) */}
+      {showJustificationModal && selectedVolunteer?.justification && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          
+          {/* Backdrop - Click to close */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm"
+            onClick={() => setShowJustificationModal(false)}
+          ></div>
+
+          {/* Modal Box - Guaranteed to sit on top of the backdrop */}
+          <div className="relative bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-2 border-emerald-600 z-10 mx-4">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
+              <h2 className="text-xl font-bold text-emerald-900">
+                Team Justification
+              </h2>
+              <button
+                onClick={() => setShowJustificationModal(false)}
+                className="text-gray-400 hover:text-gray-600 font-bold text-3xl cursor-pointer leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+{/* Content */}
+            <div className="max-h-60 overflow-y-auto pr-2">
+              <div className="bg-emerald-50 border-2 border-emerald-400 rounded-lg p-4 shadow-inner">
+                <p className="text-gray-800 leading-relaxed text-base whitespace-pre-wrap italic">
+                  {selectedVolunteer.justification}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowJustificationModal(false)}
+                className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors cursor-pointer shadow-md"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
