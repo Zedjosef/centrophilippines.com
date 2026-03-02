@@ -710,26 +710,9 @@ function MultipleEventPage() {
     }
   };
 
-  const fetchVolunteers = async () => {
+const fetchVolunteers = async () => {
     try {
-      // 1. Get all users in this event
-      const { data: eventUsers, error: eventError } = await supabase
-        .from("Event_User")
-        .select("user_id, userEvent_id")
-        .eq("event_id", eventId);
-      if (eventError) throw eventError;
-      if (!eventUsers || eventUsers.length === 0) { setVolunteers([]); return; }
-
-      const userIds = eventUsers.map((eu) => eu.user_id);
-
-      // 2. Get volunteer names
-      const { data: users } = await supabase
-        .from("LoginInformation")
-        .select("user_id, firstname, lastname")
-        .in("user_id", userIds);
-
-      // 3. Fetch ALL Task_Reports columns (description_one through description_fifteen + deadlines)
-      //    Using select("*") so we never miss a column
+      // 1. Fetch ALL Task_Reports FIRST (so tasks always show, even if 0 volunteers)
       const { data: taskReportData, error: taskError } = await supabase
         .from("Task_Reports")
         .select("*")
@@ -739,10 +722,33 @@ function MultipleEventPage() {
       if (taskError && taskError.code !== "PGRST116") {
         console.error("Error fetching task descriptions:", taskError);
       }
+      // Save the tasks to state immediately
       setTaskReport(taskReportData || null);
 
-      // 4. Fetch ALL Task_Submissions columns (task_one through task_fifteen + status)
-      //    Using select("*") so we never miss a task column
+      // 2. Get all users in this event
+      const { data: eventUsers, error: eventError } = await supabase
+        .from("Event_User")
+        .select("user_id, userEvent_id")
+        .eq("event_id", eventId);
+      
+      if (eventError) throw eventError;
+      
+      // 3. IF NO VOLUNTEERS: Clear volunteer state and stop here. 
+      // (The tasks will still render because we already fetched and set them above!)
+      if (!eventUsers || eventUsers.length === 0) { 
+        setVolunteers([]); 
+        return; 
+      }
+
+      const userIds = eventUsers.map((eu) => eu.user_id);
+
+      // 4. Get volunteer names
+      const { data: users } = await supabase
+        .from("LoginInformation")
+        .select("user_id, firstname, lastname")
+        .in("user_id", userIds);
+
+      // 5. Fetch ALL Task_Submissions columns
       const { data: taskSubmissions } = await supabase
         .from("Task_Submissions")
         .select("*")
@@ -753,7 +759,7 @@ function MultipleEventPage() {
       const submissionMap = {};
       taskSubmissions?.forEach((sub) => { submissionMap[sub.user_id] = sub; });
 
-      // 5. Combine everything into volunteer objects
+      // 6. Combine everything into volunteer objects
       const volunteersData = eventUsers.map((eu) => {
         const user       = users?.find((u) => u.user_id === eu.user_id);
         const submission = submissionMap[eu.user_id] || null;
