@@ -77,27 +77,38 @@ export default function ReviewApplicationEventPage() {
     };
   }, [showCentroConfirm]);
 
-  const fetchEventApplications = async (eventId) => {
-    const { data, error } = await supabase
+const fetchEventApplications = async (eventId) => {
+    // 1. Fetch individual applicants
+    const { data: individualData, error: individualError } = await supabase
       .from("Event_User")
-      .select(
-        "user_id, event_id, status, days_available, time_availability, busy_hours"
-      )
+      .select("user_id, event_id, status, days_available, time_availability, busy_hours")
       .eq("event_id", eventId)
       .eq("status", "PENDING");
 
-    if (error) {
-      console.error("Error fetching applications:", error);
-      return;
-    }
+    if (individualError) console.error("Error fetching individuals:", individualError);
 
+    // 2. Fetch team applicants 
+    // Note: This assumes you added a 'status' column to TeamJoining. 
+    // If you haven't, remove the .eq("status", "PENDING") line below.
+    const { data: teamData, error: teamError } = await supabase
+      .from("TeamJoining")
+      .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status")
+      .eq("event_id", eventId)
+      .eq("status", "PENDING"); 
+
+    if (teamError) console.error("Error fetching teams:", teamError);
+
+    // 3. Tag and merge the arrays
+    const individuals = (individualData || []).map(app => ({ ...app, application_type: 'individual' }));
+    const teams = (teamData || []).map(app => ({ ...app, application_type: 'team' }));
+    const allApplications = [...individuals, ...teams];
+
+    // 4. Fetch the LoginInformation for all applicants (Individuals and Team Leaders)
     const volunteerApplications = await Promise.all(
-      data.map(async (app) => {
+      allApplications.map(async (app) => {
         const { data: volunteerData, error: userError } = await supabase
           .from("LoginInformation")
-          .select(
-            "user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills"
-          )
+          .select("user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills")
           .eq("user_id", app.user_id)
           .single();
 
@@ -108,18 +119,18 @@ export default function ReviewApplicationEventPage() {
 
         return {
           ...volunteerData,
-          application_id: app.user_id,
+          application_id: app.user_id, // We use the leader's ID
           event_id: app.event_id,
           days_available: app.days_available,
           time_availability: app.time_availability,
           busy_hours: app.busy_hours,
+          application_type: app.application_type,
+          members_names: app.members_names || null, // Only exists for teams
         };
       })
     );
 
-    const filteredApplications = volunteerApplications.filter(
-      (app) => app !== null
-    );
+    const filteredApplications = volunteerApplications.filter(app => app !== null);
     setPendingApplications(filteredApplications);
   };
 
@@ -428,7 +439,14 @@ export default function ReviewApplicationEventPage() {
                           onClick={() => setSelectedVolunteer(volunteer)}
                         >
                           <div className="text-sm">{volunteer.user_id}</div>
-                          <div className="text-sm">{volunteer.firstname} {volunteer.lastname}</div>
+                          <div className="text-sm flex items-center gap-2">
+  {volunteer.application_type === 'team' && (
+    <span className="bg-emerald-200 text-emerald-900 text-[10px] px-2 py-0.5 rounded-full font-bold">
+      TEAM
+    </span>
+  )}
+  <span>{volunteer.firstname} {volunteer.lastname}</span>
+</div>
                           <div className="text-sm truncate" title={volunteer.email}>{volunteer.email}</div>
                         </div>
                       ))}
@@ -547,7 +565,20 @@ export default function ReviewApplicationEventPage() {
                             <p className="text-sm text-gray-500 pl-5">Not specified</p>
                           </>
                         )}
-
+{/* NEW: Team Members Section */}
+{selectedVolunteer.application_type === 'team' && selectedVolunteer.members_names && (
+  <>
+    <p className="mt-4 font-bold text-base mb-2 text-emerald-900 border-t pt-4">
+      Team Members
+    </p>
+    <ul className="list-disc pl-5 text-sm text-emerald-900">
+      {/* Assuming the names are separated by commas or dashes */}
+      {selectedVolunteer.members_names.split(/[,|-|_]/).map((name, idx) => (
+        name.trim() ? <li key={idx} className="mb-1">{name.trim()}</li> : null
+      ))}
+    </ul>
+  </>
+)}
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200 flex-shrink-0">
