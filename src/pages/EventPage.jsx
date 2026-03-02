@@ -300,10 +300,10 @@ function TaskCard({ task, onOpenModal }) {
     const [selectedTask, setSelectedTask] = useState(null);
 
     const SUFFIXES = [
-      "one", "two", "three", "four", "five",
-      "six", "seven", "eight", "nine", "ten",
-      "eleven", "twelve", "thirteen", "fourteen", "fifteen"
-    ];
+  "one", "two", "three", "four", "five",
+  "six", "seven", "eight", "nine", "ten",
+  "eleven", "twelve", "thirteen", "fourteen", "fifteen"
+];
 
     useEffect(() => {
       if (!eventId) return;
