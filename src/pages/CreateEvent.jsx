@@ -195,6 +195,272 @@ function EventTypeModal({ onSelect, onCancel }) {
     </div>
   );
 }
+function ModernDatePicker({ value, onChange, minDate, placeholder = "Select date...", rangeStart, rangeEnd }) {
+  const [open, setOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(null);
+  const [viewMonth, setViewMonth] = useState(null);
+  const wrapperRef = useRef(null);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const minD = minDate ? new Date(minDate + 'T00:00:00') : today;
+
+  const parsed = value ? new Date(value + 'T00:00:00') : null;
+
+  useEffect(() => {
+    const base = parsed || today;
+    setViewYear(base.getFullYear());
+    setViewMonth(base.getMonth());
+  }, [value]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  const getDays = () => {
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInPrev = new Date(viewYear, viewMonth, 0).getDate();
+    const days = [];
+    for (let i = firstDay - 1; i >= 0; i--) {
+      days.push({ day: daysInPrev - i, currentMonth: false, date: new Date(viewYear, viewMonth - 1, daysInPrev - i) });
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, currentMonth: true, date: new Date(viewYear, viewMonth, i) });
+    }
+    const remaining = 42 - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      days.push({ day: i, currentMonth: false, date: new Date(viewYear, viewMonth + 1, i) });
+    }
+    return days;
+  };
+
+  const formatDisplay = (dateStr) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  };
+
+  const toYMD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const isToday = (date) => date.toDateString() === today.toDateString();
+  const isSelected = (date) => value && toYMD(date) === value;
+  const isDisabled = (date) => {
+    const d = new Date(date); d.setHours(0, 0, 0, 0);
+    return d < minD;
+  };
+
+  // Range highlight logic
+  const isInRange = (date) => {
+    if (!rangeStart || !rangeEnd) return false;
+    const start = new Date(rangeStart + 'T00:00:00');
+    const end = new Date(rangeEnd + 'T00:00:00');
+    const d = new Date(date); d.setHours(0, 0, 0, 0);
+    return d > start && d < end;
+  };
+  const isRangeStart = (date) => rangeStart && toYMD(date) === rangeStart;
+  const isRangeEnd = (date) => rangeEnd && toYMD(date) === rangeEnd;
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
+  if (viewYear === null) return null;
+
+  return (
+    <div className="date-picker-wrapper" ref={wrapperRef}>
+      <div className={`date-input-display ${open ? 'active' : ''}`} onClick={() => setOpen(o => !o)}>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span className={`date-text ${!value ? 'placeholder' : ''}`}>
+          {value ? formatDisplay(value) : placeholder}
+        </span>
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      {open && (
+        <div className="date-calendar-popup">
+          <div className="cal-header">
+            <button className="cal-nav-btn" onClick={prevMonth}>‹</button>
+            <span className="cal-month-year">{monthNames[viewMonth]} {viewYear}</span>
+            <button className="cal-nav-btn" onClick={nextMonth}>›</button>
+          </div>
+          <div className="cal-grid">
+            {dayNames.map(d => <div key={d} className="cal-day-name">{d}</div>)}
+            {getDays().map((item, i) => {
+              const inRange = isInRange(item.date);
+              const rStart = isRangeStart(item.date);
+              const rEnd = isRangeEnd(item.date);
+              return (
+                <button
+                  key={i}
+                  className={`cal-day 
+                    ${!item.currentMonth ? 'other-month' : ''}
+                    ${isToday(item.date) && !isSelected(item.date) && !rStart && !rEnd ? 'today' : ''}
+                    ${isSelected(item.date) || rStart || rEnd ? 'selected' : ''}
+                    ${isDisabled(item.date) ? 'disabled' : ''}
+                    ${inRange && item.currentMonth ? 'in-range' : ''}
+                    ${rStart && item.currentMonth ? 'range-start' : ''}
+                    ${rEnd && item.currentMonth ? 'range-end' : ''}
+                  `}
+                  onClick={() => {
+                    if (!isDisabled(item.date) && item.currentMonth) {
+                      onChange(toYMD(item.date));
+                      setOpen(false);
+                    }
+                  }}
+                >
+                  {item.day}
+                </button>
+              );
+            })}
+          </div>
+          <div className="cal-footer">
+            <button className="cal-footer-btn cal-clear-btn" onClick={() => { onChange(''); setOpen(false); }}>Clear</button>
+            <button className="cal-footer-btn cal-today-btn" onClick={() => {
+              onChange(toYMD(today));
+              setOpen(false);
+            }}>Today</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModernTimePicker({ startValue, endValue, onStartChange, onEndChange, isRange = false, placeholder = "Select time..." }) {
+  const [openStart, setOpenStart] = useState(false);
+  const [openEnd, setOpenEnd] = useState(false);
+  const startRef = useRef(null);
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (startRef.current && !startRef.current.contains(e.target)) setOpenStart(false);
+      if (endRef.current && !endRef.current.contains(e.target)) setOpenEnd(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const generateTimes = () => {
+    const times = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let min = 0; min < 60; min += 30) {
+        const h = String(hour).padStart(2, '0');
+        const m = String(min).padStart(2, '0');
+        const time24 = `${h}:${m}`;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const label = `${displayHour}:${m} ${ampm}`;
+        times.push({ value: label, label });
+      }
+    }
+    return times;
+  };
+
+  const times = generateTimes();
+
+  const TimeDropdown = ({ value, onChange, open, setOpen, refEl, placeholder: ph = "Select time..." }) => (
+    <div className="time-picker-wrapper" ref={refEl} style={{ position: 'relative', flex: 1 }}>
+      <div
+        className={`date-input-display ${open ? 'active' : ''}`}
+        onClick={() => setOpen(o => !o)}
+        style={{ padding: '9px 12px', gap: '6px' }}
+      >
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth={2}>
+          <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+        </svg>
+        <span className={`date-text ${!value ? 'placeholder' : ''}`} style={{ fontSize: '1rem' }}>
+          {value || ph}
+        </span>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+      {open && (
+        <div className="date-calendar-popup" style={{ padding: '8px 0', minWidth: '160px', maxHeight: '220px', overflowY: 'auto' }}>
+          {times.map((t) => (
+            <div
+              key={t.value}
+              onClick={() => { onChange(t.value); setOpen(false); }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: value === t.value ? '700' : '400',
+                color: value === t.value ? '#059669' : '#374151',
+                background: value === t.value ? '#f0fdf4' : 'transparent',
+                transition: 'background 0.12s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
+              onMouseLeave={e => e.currentTarget.style.background = value === t.value ? '#f0fdf4' : 'transparent'}
+            >
+              {value === t.value && <span style={{ marginRight: 6, color: '#059669' }}>✓</span>}
+              {t.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if (!isRange) {
+    return (
+      <TimeDropdown
+        value={startValue}
+        onChange={onStartChange}
+        open={openStart}
+        setOpen={setOpenStart}
+        refEl={startRef}
+        placeholder={placeholder}
+      />
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <TimeDropdown
+        value={startValue}
+        onChange={onStartChange}
+        open={openStart}
+        setOpen={setOpenStart}
+        refEl={startRef}
+        placeholder="Start time..."
+      />
+      <span style={{ color: '#9ca3af', fontWeight: 'bold', flexShrink: 0 }}>—</span>
+      <TimeDropdown
+        value={endValue}
+        onChange={onEndChange}
+        open={openEnd}
+        setOpen={setOpenEnd}
+        refEl={endRef}
+        placeholder="End time..."
+      />
+    </div>
+  );
+}
 
 function CreateEvent() {
   const navigate = useNavigate();
@@ -492,24 +758,26 @@ function CreateEvent() {
       }
     }
 
-    if (!startTime) {
-      setModalConfig({
-        title: "Incomplete",
-        message: "Please select a Start Time.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
+    if (eventType === 'single') {
+      if (!startTime) {
+        setModalConfig({
+          title: "Incomplete",
+          message: "Please select a Start Time.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
 
-    if (!endTime) {
-      setModalConfig({
-        title: "Incomplete",
-        message: "Please select an End Time.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
+      if (!endTime) {
+        setModalConfig({
+          title: "Incomplete",
+          message: "Please select an End Time.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
     }
 
     if (!eventDescription.trim()) {
@@ -552,7 +820,7 @@ function CreateEvent() {
       return false;
     }
 
-    if (!callTime) {
+    if (eventType === 'single' && !callTime) {
       setModalConfig({
         title: "Incomplete",
         message: "Please select a Call Time.",
@@ -629,28 +897,30 @@ function CreateEvent() {
     }
 
     // Validate time logic
-    const start = new Date(`1970-01-01T${convertTo24Hour(startTime)}`);
-    const end = new Date(`1970-01-01T${convertTo24Hour(endTime)}`);
-    const call = new Date(`1970-01-01T${convertTo24Hour(callTime)}`);
+    if (eventType === 'single') {
+      const start = new Date(`1970-01-01T${convertTo24Hour(startTime)}`);
+      const end = new Date(`1970-01-01T${convertTo24Hour(endTime)}`);
+      const call = new Date(`1970-01-01T${convertTo24Hour(callTime)}`);
 
-    if (start >= end) {
-      setModalConfig({
-        title: "Invalid Time",
-        message: "End time must be after start time.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
-    }
+      if (start >= end) {
+        setModalConfig({
+          title: "Invalid Time",
+          message: "End time must be after start time.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
 
-    if (call > start) {
-      setModalConfig({
-        title: "Invalid Call Time",
-        message: "Call time must be before or equal to start time.",
-        onCancel: () => setModalConfig(null),
-        type: "alert",
-      });
-      return false;
+      if (call > start) {
+        setModalConfig({
+          title: "Invalid Call Time",
+          message: "Call time must be before or equal to start time.",
+          onCancel: () => setModalConfig(null),
+          type: "alert",
+        });
+        return false;
+      }
     }
 
     return true;
@@ -690,16 +960,6 @@ function CreateEvent() {
           });
           return false;
         }
-        if (!task.startTime || !task.endTime) {
-          setModalConfig({
-            title: "Incomplete Tasks",
-            message: "Please provide start and end times for all tasks.",
-            onCancel: () => setModalConfig(null),
-            type: "alert",
-          });
-          return false;
-        }
-
         // Validate date range
         const taskStart = new Date(task.startDate);
         const taskEnd = new Date(task.endDate);
@@ -736,7 +996,7 @@ function CreateEvent() {
       )
     );
   };
-// Updated addDynamicTask with 15-task limit
+  // Updated addDynamicTask with 15-task limit
   const addDynamicTask = () => {
     if (dynamicTasks.length < 15) {
       const newId = Math.max(...dynamicTasks.map(t => t.id), 0) + 1;
@@ -895,59 +1155,59 @@ function CreateEvent() {
     }
   };
 
-const createTaskReport = async (eventId, taskId) => {
-  try {
-    const taskData = {
-      task_id: taskId,
-      event_id: eventId,
-      ngo_id: ngoCode,
-    };
+  const createTaskReport = async (eventId, taskId) => {
+    try {
+      const taskData = {
+        task_id: taskId,
+        event_id: eventId,
+        ngo_id: ngoCode,
+      };
 
-    const tasksToUse = eventType === 'multiple' ? dynamicTasks : completionTasks;
+      const tasksToUse = eventType === 'multiple' ? dynamicTasks : completionTasks;
 
-    const columnSuffixes = [
-      "one", "two", "three", "four", "five",
-      "six", "seven", "eight", "nine", "ten",
-      "eleven", "twelve", "thirteen", "fourteen", "fifteen"
-    ];
+      const columnSuffixes = [
+        "one", "two", "three", "four", "five",
+        "six", "seven", "eight", "nine", "ten",
+        "eleven", "twelve", "thirteen", "fourteen", "fifteen"
+      ];
 
-    tasksToUse.forEach((task, index) => {
-      if (index < columnSuffixes.length) {
-        const suffix = columnSuffixes[index];
+      tasksToUse.forEach((task, index) => {
+        if (index < columnSuffixes.length) {
+          const suffix = columnSuffixes[index];
 
-        if (eventType === 'multiple') {
-          taskData[`description_${suffix}`] = `${task.taskName}: ${task.description}`;
-        } else {
-          taskData[`description_${suffix}`] = task.description;
-        }
-
-        // Save start and end as full timestamps (task_start_one, task_end_one, etc.)
-        if (eventType === 'multiple') {
-          if (task.startDate && task.startTime) {
-            // task.startTime is in "8:00 AM" format — convert to 24hr first
-            const cleanStart = convertTo24Hour(task.startTime);
-            taskData[`task_start_${suffix}`] = `${task.startDate} ${cleanStart}`;
+          if (eventType === 'multiple') {
+            taskData[`description_${suffix}`] = `${task.taskName}: ${task.description}`;
+          } else {
+            taskData[`description_${suffix}`] = task.description;
           }
-          if (task.endDate && task.endTime) {
-            const cleanEnd = convertTo24Hour(task.endTime);
-            taskData[`task_end_${suffix}`] = `${task.endDate} ${cleanEnd}`;
+
+          // Save start and end as full timestamps (task_start_one, task_end_one, etc.)
+          if (eventType === 'multiple') {
+            if (task.startDate && task.startTime) {
+              // task.startTime is in "8:00 AM" format — convert to 24hr first
+              const cleanStart = convertTo24Hour(task.startTime);
+              taskData[`task_start_${suffix}`] = `${task.startDate} ${cleanStart}`;
+            }
+            if (task.endDate && task.endTime) {
+              const cleanEnd = convertTo24Hour(task.endTime);
+              taskData[`task_end_${suffix}`] = `${task.endDate} ${cleanEnd}`;
+            }
           }
         }
-      }
-    });
+      });
 
-    const { data, error } = await supabase
-      .from("Task_Reports")
-      .insert([taskData])
-      .select();
+      const { data, error } = await supabase
+        .from("Task_Reports")
+        .insert([taskData])
+        .select();
 
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error("Error creating task report:", error);
-    throw error;
-  }
-};
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error creating task report:", error);
+      throw error;
+    }
+  };
 
 
   // Create event in database
@@ -967,13 +1227,13 @@ const createTaskReport = async (eventId, taskId) => {
       }
 
       // Create event data (removed completion_tasks field)
-const eventData = {
+      const eventData = {
         event_id: eventId,
         ngo_id: ngoCode,
         event_title: eventTitle.trim(),
-        event_type: eventType,  
+        event_type: eventType,
         // FIX: If it's a single event, use eventDate. If multiple, use eventStartDate.
-        date: eventType === 'single' ? eventDate : eventStartDate, 
+        date: eventType === 'single' ? eventDate : eventStartDate,
         event_end_date: eventType === 'multiple' ? eventEndDate : null, // ← BAGO
 
         time_start: convertTo24Hour(startTime),
@@ -1100,56 +1360,60 @@ const eventData = {
         />
       </div>
 
-      {/* Date & Time Container */}
       {eventType === 'single' ? (
-        // Single Event - Original Date & Time
-        <div className="w-full flex flex-wrap gap-6 mb-6">
-          <div className="flex-1 min-w-[250px]">
-            <label className="block font-semibold text-lg text-emerald-800 mb-1">
-              Date  <span className="text-red-600">*</span>
-            </label>
-            <div className="flex items-center border bg-white border-gray-300 rounded px-4 py-2">
-              <img src={DateIcon} alt="Date" className="w-5 h-5 mr-2" />
-              <input
-                type="date"
+        <div className="w-full mb-6">
+          {/* Row 1: Date + Time (Start-End) */}
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1 min-w-0">
+              <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                Date <span className="text-red-600">*</span>
+              </label>
+              <ModernDatePicker
                 value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent"
+                onChange={(val) => setEventDate(val)}
+                minDate={new Date().toISOString().split('T')[0]}
+                placeholder="Select event date..."
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                Event Time <span className="text-red-600">*</span>
+              </label>
+              <ModernTimePicker
+                startValue={startTime}
+                endValue={endTime}
+                onStartChange={setStartTime}
+                onEndChange={setEndTime}
+                isRange={true}
               />
             </div>
           </div>
 
-          <div className="flex-1 min-w-[200px]">
-            <label className="block font-semibold text-lg text-emerald-800 mb-1">
-              Time <span className="text-red-600">*</span>
-            </label>
-            <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3">
-              <img src={TimeIcon} alt="Time" className="w-5 h-5 mr-2" />
-              <select
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full border-none focus:outline-none cursor-pointer bg-transparent text-gray-700"
-              >
-                <option value="">Start Time</option>
-                {timeOptions.map((time) => (
-                  <option key={`start-${time.value}`} value={time.value}>
-                    {time.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-1/2 p-2 focus:outline-none cursor-pointer"
-              >
-                <option value="">End Time</option>
-                {timeOptions.map((time) => (
-                  <option key={`end-${time.value}`} value={time.value}>
-                    {time.label}
-                  </option>
-                ))}
-              </select>
+          {/* Row 2: Call Time + Volunteers Limit */}
+          <div className="flex gap-4">
+            <div className="flex-1 min-w-0">
+              <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                Call Time <span className="text-red-600">*</span>
+              </label>
+              <ModernTimePicker
+                startValue={callTime}
+                onStartChange={setCallTime}
+                isRange={false}
+                placeholder="Select call time..."
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="block font-semibold text-lg text-emerald-800 mb-1">
+                Volunteers Limit <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="number"
+                placeholder="Enter Number of Volunteers"
+                value={volunteersLimit}
+                onChange={(e) => setVolunteersLimit(e.target.value)}
+                min="1"
+                className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 py-2 bg-white text-gray-700 text-md h-[42px]"
+              />
             </div>
           </div>
         </div>
@@ -1159,64 +1423,54 @@ const eventData = {
           {/* Event Duration & Event Time - ONE LINER (same as Step 2) */}
           <div className="w-full mb-6">
             <div className="flex gap-4">
-              {/* Event Duration */}
               <div className="flex-1 min-w-0">
                 <label className="block font-semibold text-emerald-800 mb-1">
                   Event Duration <span className="text-red-600">*</span>
                 </label>
-                <div className="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-2 gap-1">
-                  <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
-                  <input
-                    type="date"
-                    value={eventStartDate}
-                    onChange={(e) => setEventStartDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-                  />
-                  <span className="text-gray-400 text-sm flex-shrink-0">—</span>
-                  <input
-                    type="date"
-                    value={eventEndDate}
-                    onChange={(e) => setEventEndDate(e.target.value)}
-                    min={eventStartDate || new Date().toISOString().split('T')[0]}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-                  />
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <ModernDatePicker
+                      value={eventStartDate}
+                      onChange={(val) => {
+                        setEventStartDate(val);
+                        // If new start is after current end, reset end
+                        if (eventEndDate && val > eventEndDate) {
+                          setEventEndDate('');
+                        }
+                      }}
+                      minDate={new Date().toISOString().split('T')[0]}
+                      placeholder="Start date..."
+                      rangeStart={eventStartDate}
+                      rangeEnd={eventEndDate}
+                    />
+                  </div>
+                  <span className="text-gray-400 self-center font-bold">—</span>
+                  <div className="flex-1">
+                    <ModernDatePicker
+                      value={eventEndDate}
+                      onChange={(val) => setEventEndDate(val)}
+                      minDate={eventStartDate || new Date().toISOString().split('T')[0]}
+                      placeholder="End date..."
+                      rangeStart={eventStartDate}
+                      rangeEnd={eventEndDate}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Event Time */}
+              {/* Volunteers Limit */}
               <div className="flex-1 min-w-0">
                 <label className="block font-semibold text-emerald-800 mb-1">
-                  Event Time <span className="text-red-600">*</span>
+                  Volunteers Limit <span className="text-red-600">*</span>
                 </label>
-                <div className="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-2 gap-1">
-                  <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-                  <select
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-                  >
-                    <option value="">Start Time</option>
-                    {timeOptions.map((time) => (
-                      <option key={`start-${time.value}`} value={time.value}>
-                        {time.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-gray-400 text-sm flex-shrink-0">—</span>
-                  <select
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-                  >
-                    <option value="">End Time</option>
-                    {timeOptions.map((time) => (
-                      <option key={`end-${time.value}`} value={time.value}>
-                        {time.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <input
+                  type="number"
+                  placeholder="Enter Number of Volunteers"
+                  value={volunteersLimit}
+                  onChange={(e) => setVolunteersLimit(e.target.value)}
+                  min="1"
+                  className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 py-2 bg-white text-gray-700 text-sm h-[42px]"
+                />
               </div>
             </div>
           </div>
@@ -1277,47 +1531,6 @@ const eventData = {
         </p>
       </div>
 
-      {/* Volunteers Limit & Call Time - ONE LINER (same format) */}
-      <div className="w-full mb-6">
-        <div className="flex gap-4">
-          {/* Volunteers Limit */}
-          <div className="flex-1 min-w-0">
-            <label className="block font-semibold text-lg text-emerald-800 mb-1">
-              Volunteers Limit <span className="text-red-600">*</span>
-            </label>
-            <input
-              type="number"
-              placeholder="Enter Number of Volunteers"
-              value={volunteersLimit}
-              onChange={(e) => setVolunteersLimit(e.target.value)}
-              min="1"
-              className="w-full border border-gray-300 focus:outline-none rounded-lg cursor-pointer px-4 py-2 bg-white text-gray-700"
-            />
-          </div>
-
-          {/* Call Time */}
-          <div className="flex-1 min-w-0">
-            <label className="block font-semibold text-lg text-emerald-800 mb-1">
-              Call Time <span className="text-red-600">*</span>
-            </label>
-            <div className="flex items-center border bg-white border-gray-300 rounded-lg px-4 py-2 gap-2">
-              <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-              <select
-                value={callTime}
-                onChange={(e) => setCallTime(e.target.value)}
-                className="flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm"
-              >
-                <option value="">Select Time</option>
-                {timeOptions.map((time) => (
-                  <option key={`call-${time.value}`} value={time.value}>
-                    {time.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Event Tasks */}
       <div className="mb-4">
@@ -1594,63 +1807,39 @@ const eventData = {
                   {/* Date & Time Range — strict one liner, no stacking */}
                   <div className="mb-4">
                     <div className="flex gap-4">
-                      {/* Date Range */}
+                      {/* Date Range - Modern Pickers with Range Highlight */}
                       <div className="flex-1 min-w-0">
                         <label className="block font-semibold text-emerald-800 mb-1">
                           Date Range <span className="text-red-600">*</span>
                         </label>
-                        <div className="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-2 gap-1">
-                          <img src={DateIcon} alt="Date" className="w-4 h-4 opacity-60 flex-shrink-0" />
-                          <input
-                            type="date"
-                            value={task.startDate}
-                            onChange={(e) => handleDynamicTaskChange(task.id, 'startDate', e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-                          />
-                          <span className="text-gray-400 text-sm flex-shrink-0">—</span>
-                          <input
-                            type="date"
-                            value={task.endDate}
-                            onChange={(e) => handleDynamicTaskChange(task.id, 'endDate', e.target.value)}
-                            min={task.startDate || new Date().toISOString().split('T')[0]}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer text-gray-700 bg-transparent text-sm min-w-0"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Time Range */}
-                      <div className="flex-1 min-w-0">
-                        <label className="block font-semibold text-emerald-800 mb-1">
-                          Time Range <span className="text-red-600">*</span>
-                        </label>
-                        <div className="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-2 gap-1">
-                          <img src={TimeIcon} alt="Time" className="w-4 h-4 opacity-60 flex-shrink-0" />
-                          <select
-                            value={task.startTime}
-                            onChange={(e) => handleDynamicTaskChange(task.id, 'startTime', e.target.value)}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-                          >
-                            <option value="">Start Time</option>
-                            {timeOptions.map((time) => (
-                              <option key={`task${task.id}-start-${time.value}`} value={time.value}>
-                                {time.label}
-                              </option>
-                            ))}
-                          </select>
-                          <span className="text-gray-400 text-sm flex-shrink-0">—</span>
-                          <select
-                            value={task.endTime}
-                            onChange={(e) => handleDynamicTaskChange(task.id, 'endTime', e.target.value)}
-                            className="w-0 flex-1 border-none focus:outline-none cursor-pointer bg-transparent text-gray-700 text-sm min-w-0"
-                          >
-                            <option value="">End Time</option>
-                            {timeOptions.map((time) => (
-                              <option key={`task${task.id}-end-${time.value}`} value={time.value}>
-                                {time.label}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="flex gap-2 items-center">
+                          <div className="flex-1">
+                            <ModernDatePicker
+                              value={task.startDate}
+                              onChange={(val) => {
+                                handleDynamicTaskChange(task.id, 'startDate', val);
+                                // Reset end date if new start is after current end
+                                if (task.endDate && val > task.endDate) {
+                                  handleDynamicTaskChange(task.id, 'endDate', '');
+                                }
+                              }}
+                              minDate={new Date().toISOString().split('T')[0]}
+                              placeholder="Start date..."
+                              rangeStart={task.startDate}
+                              rangeEnd={task.endDate}
+                            />
+                          </div>
+                          <span className="text-gray-400 font-bold flex-shrink-0">—</span>
+                          <div className="flex-1">
+                            <ModernDatePicker
+                              value={task.endDate}
+                              onChange={(val) => handleDynamicTaskChange(task.id, 'endDate', val)}
+                              minDate={task.startDate || new Date().toISOString().split('T')[0]}
+                              placeholder="End date..."
+                              rangeStart={task.startDate}
+                              rangeEnd={task.endDate}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1690,7 +1879,7 @@ const eventData = {
             </div>
           ))}
         </div>
-{eventType === 'multiple' && dynamicTasks.length < 15 && (
+        {eventType === 'multiple' && dynamicTasks.length < 15 && (
           <button
             type="button"
             onClick={addDynamicTask}
@@ -1699,12 +1888,12 @@ const eventData = {
             + Add Another Task
           </button>
         )}
-        
+
         {/* Optional: Visual indicator that limit is reached */}
         {eventType === 'multiple' && dynamicTasks.length >= 15 && (
-           <p className="text-center text-gray-500 mb-6 italic">
-             Maximum of 15 tasks reached.
-           </p>
+          <p className="text-center text-gray-500 mb-6 italic">
+            Maximum of 15 tasks reached.
+          </p>
         )}
 
         {/* Step 2 Buttons */}
@@ -1771,21 +1960,25 @@ const eventData = {
                   : formatDate(eventDate)}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Time:</p>
-              <p className="text-gray-800">{startTime} - {endTime}</p>
-            </div>
+            {eventType === 'single' && (
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Event Time:</p>
+                <p className="text-gray-800">{startTime} — {endTime}</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-emerald-600 font-medium">Location:</p>
               <p className="text-gray-800">{location}</p>
             </div>
+            {eventType === 'single' && (
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
+                <p className="text-gray-800">{callTime}</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-emerald-600 font-medium">Volunteers Limit:</p>
               <p className="text-gray-800">{volunteersLimit}</p>
-            </div>
-            <div>
-              <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
-              <p className="text-gray-800">{callTime}</p>
             </div>
           </div>
 
@@ -2036,7 +2229,169 @@ const eventData = {
           )}
 
           {/* CSS Animations */}
-<style>{`
+          <style>{`
+            /* Modern Date Picker */
+            .date-picker-wrapper {
+              position: relative;
+              width: 100%;
+            }
+            .date-input-display {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: white;
+              border: 1.5px solid #d1d5db;
+              border-radius: 10px;
+              padding: 9px 14px;
+              cursor: pointer;
+              transition: all 0.2s;
+              user-select: none;
+            }
+            .date-input-display:hover {
+              border-color: #059669;
+              box-shadow: 0 0 0 3px rgba(5,150,105,0.08);
+            }
+            .date-input-display.active {
+              border-color: #059669;
+              box-shadow: 0 0 0 3px rgba(5,150,105,0.13);
+            }
+            .date-input-display .date-text {
+              flex: 1;
+              font-size: 1rem;
+              color: #374151;
+            }
+            .date-input-display .date-text.placeholder {
+              color: #9ca3af;
+            }
+            .date-calendar-popup {
+              position: absolute;
+              top: calc(100% + 6px);
+              left: 0;
+              z-index: 9999;
+              background: white;
+              border-radius: 16px;
+              box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+              padding: 20px;
+              min-width: 300px;
+              animation: calPopIn 0.18s cubic-bezier(.4,0,.2,1);
+            }
+            @keyframes calPopIn {
+              from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+              to   { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            .cal-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 16px;
+            }
+            .cal-nav-btn {
+              width: 32px; height: 32px;
+              border-radius: 8px;
+              border: none;
+              background: #f0fdf4;
+              color: #059669;
+              cursor: pointer;
+              display: flex; align-items: center; justify-content: center;
+              font-size: 1rem;
+              transition: background 0.15s;
+            }
+            .cal-nav-btn:hover { background: #d1fae5; }
+            .cal-month-year {
+              font-weight: 700;
+              font-size: 1rem;
+              color: #065f46;
+              letter-spacing: 0.01em;
+            }
+            .cal-grid {
+              display: grid;
+              grid-template-columns: repeat(7, 1fr);
+              gap: 3px;
+            }
+            .cal-day-name {
+              text-align: center;
+              font-size: 0.7rem;
+              font-weight: 700;
+              color: #6b7280;
+              padding: 4px 0 8px;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            }
+            .cal-day {
+              aspect-ratio: 1;
+              display: flex; align-items: center; justify-content: center;
+              border-radius: 8px;
+              font-size: 0.82rem;
+              cursor: pointer;
+              border: none;
+              background: transparent;
+              color: #374151;
+              font-weight: 500;
+              transition: all 0.15s;
+            }
+            .cal-day:hover:not(.disabled):not(.selected) {
+              background: #d1fae5;
+              color: #065f46;
+            }
+            .cal-day.today:not(.selected) {
+              background: #f0fdf4;
+              color: #059669;
+              font-weight: 800;
+              border: 1.5px solid #6ee7b7;
+            }
+            .cal-day.selected {
+              background: linear-gradient(135deg, #059669, #10b981);
+              color: white;
+              font-weight: 700;
+              box-shadow: 0 4px 12px rgba(5,150,105,0.35);
+            }
+            .cal-day.disabled {
+              color: #d1d5db;
+              cursor: not-allowed;
+            }
+            .cal-day.other-month {
+              color: #e5e7eb;
+            }
+            .cal-footer {
+              display: flex;
+              justify-content: space-between;
+              margin-top: 14px;
+              padding-top: 12px;
+              border-top: 1px solid #f3f4f6;
+            }
+            .cal-footer-btn {
+              font-size: 0.8rem;
+              font-weight: 600;
+              padding: 5px 14px;
+              border-radius: 7px;
+              border: none;
+              cursor: pointer;
+              transition: all 0.15s;
+            }
+            .cal-clear-btn { background: #fef2f2; color: #ef4444; }
+            .cal-clear-btn:hover { background: #fee2e2; }
+            .cal-today-btn { background: #d1fae5; color: #059669; }
+            .cal-today-btn:hover { background: #a7f3d0; }
+
+            /* Range highlight styles */
+            .cal-day.in-range {
+              background: #d1fae5;
+              color: #065f46;
+              border-radius: 0;
+            }
+            .cal-day.range-start {
+              background: linear-gradient(135deg, #059669, #10b981) !important;
+              color: white !important;
+              border-radius: 8px 0 0 8px;
+              box-shadow: 0 4px 12px rgba(5,150,105,0.35);
+            }
+            .cal-day.range-end {
+              background: linear-gradient(135deg, #059669, #10b981) !important;
+              color: white !important;
+              border-radius: 0 8px 8px 0;
+              box-shadow: 0 4px 12px rgba(5,150,105,0.35);
+            }
+
             @keyframes fadeIn {
               from { opacity: 0; }
               to { opacity: 1; }
@@ -2049,7 +2404,41 @@ const eventData = {
 
             .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
             .animate-scaleIn { animation: scaleIn 0.2s ease-out; }
-          `}</style>
+          input[type="date"] {
+            color-scheme: light;
+            font-family: inherit;
+          }
+          input[type="date"]::-webkit-calendar-picker-indicator {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: 16px;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+          }
+          input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            background-color: rgba(5, 150, 105, 0.1);
+          }
+          input[type="date"]:focus {
+            outline: none;
+            border-color: #059669 !important;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+            border-radius: 8px;
+          }
+          input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+            color: #374151;
+          }
+          input[type="date"]::-webkit-datetime-edit-month-field:focus,
+          input[type="date"]::-webkit-datetime-edit-day-field:focus,
+          input[type="date"]::-webkit-datetime-edit-year-field:focus {
+            background-color: #d1fae5;
+            color: #065f46;
+            border-radius: 3px;
+            outline: none;
+          }
+          `}
+          </style>
         </div>
       )}
     </>

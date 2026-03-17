@@ -13,6 +13,7 @@ export default function ReviewApplicationEventPage() {
   const [selectedEventDetails, setSelectedEventDetails] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [showCentroConfirm, setShowCentroConfirm] = useState(false);
+  const [showJustificationModal, setShowJustificationModal] = useState(false);
 
   const [sortBy, setSortBy] = useState("id");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -77,27 +78,38 @@ export default function ReviewApplicationEventPage() {
     };
   }, [showCentroConfirm]);
 
-  const fetchEventApplications = async (eventId) => {
-    const { data, error } = await supabase
+const fetchEventApplications = async (eventId) => {
+    // 1. Fetch individual applicants
+    const { data: individualData, error: individualError } = await supabase
       .from("Event_User")
-      .select(
-        "user_id, event_id, status, days_available, time_availability, busy_hours"
-      )
+      .select("user_id, event_id, status, days_available, time_availability, busy_hours")
       .eq("event_id", eventId)
       .eq("status", "PENDING");
 
-    if (error) {
-      console.error("Error fetching applications:", error);
-      return;
-    }
+    if (individualError) console.error("Error fetching individuals:", individualError);
 
+    // 2. Fetch team applicants 
+    // Note: This assumes you added a 'status' column to TeamJoining. 
+    // If you haven't, remove the .eq("status", "PENDING") line below.
+    const { data: teamData, error: teamError } = await supabase
+      .from("TeamJoining")
+      .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status, justification")
+      .eq("event_id", eventId)
+      .eq("status", "PENDING"); 
+
+    if (teamError) console.error("Error fetching teams:", teamError);
+
+    // 3. Tag and merge the arrays
+    const individuals = (individualData || []).map(app => ({ ...app, application_type: 'individual' }));
+    const teams = (teamData || []).map(app => ({ ...app, application_type: 'team' }));
+    const allApplications = [...individuals, ...teams];
+
+    // 4. Fetch the LoginInformation for all applicants (Individuals and Team Leaders)
     const volunteerApplications = await Promise.all(
-      data.map(async (app) => {
+      allApplications.map(async (app) => {
         const { data: volunteerData, error: userError } = await supabase
           .from("LoginInformation")
-          .select(
-            "user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills"
-          )
+          .select("user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills")
           .eq("user_id", app.user_id)
           .single();
 
@@ -108,18 +120,19 @@ export default function ReviewApplicationEventPage() {
 
         return {
           ...volunteerData,
-          application_id: app.user_id,
+          application_id: app.user_id, // We use the leader's ID
           event_id: app.event_id,
           days_available: app.days_available,
           time_availability: app.time_availability,
           busy_hours: app.busy_hours,
+          application_type: app.application_type,
+          members_names: app.members_names || null, // Only exists for teams
+          justification: app.justification || null,
         };
       })
     );
 
-    const filteredApplications = volunteerApplications.filter(
-      (app) => app !== null
-    );
+    const filteredApplications = volunteerApplications.filter(app => app !== null);
     setPendingApplications(filteredApplications);
   };
 
@@ -428,7 +441,14 @@ export default function ReviewApplicationEventPage() {
                           onClick={() => setSelectedVolunteer(volunteer)}
                         >
                           <div className="text-sm">{volunteer.user_id}</div>
-                          <div className="text-sm">{volunteer.firstname} {volunteer.lastname}</div>
+                          <div className="text-sm flex items-center gap-2">
+  {volunteer.application_type === 'team' && (
+    <span className="bg-emerald-200 text-emerald-900 text-[10px] px-2 py-0.5 rounded-full font-bold">
+      TEAM
+    </span>
+  )}
+  <span>{volunteer.firstname} {volunteer.lastname}</span>
+</div>
                           <div className="text-sm truncate" title={volunteer.email}>{volunteer.email}</div>
                         </div>
                       ))}
@@ -547,7 +567,30 @@ export default function ReviewApplicationEventPage() {
                             <p className="text-sm text-gray-500 pl-5">Not specified</p>
                           </>
                         )}
-
+{/* NEW: Team Members Section */}
+{selectedVolunteer.application_type === 'team' && selectedVolunteer.members_names && (
+  <>
+    <div className="mt-4 border-t pt-4 flex items-center justify-between mb-2">
+      <p className="font-bold text-base text-emerald-900">
+        Team Members
+      </p>
+      {/* Show button only if a justification exists */}
+      {selectedVolunteer.justification && (
+        <button
+          onClick={() => setShowJustificationModal(true)}
+          className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold py-1 px-3 rounded-full transition-colors cursor-pointer border border-emerald-300 shadow-sm"
+        >
+          View Justification
+        </button>
+      )}
+    </div>
+    <ul className="list-disc pl-5 text-sm text-emerald-900 space-y-1">
+      {selectedVolunteer.members_names.split('_').map((name, idx) => (
+        name.trim() ? <li key={idx}>{name.trim()}</li> : null
+      ))}
+    </ul>
+  </>
+)}
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200 flex-shrink-0">
@@ -629,6 +672,53 @@ export default function ReviewApplicationEventPage() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+{/* Justification Modal (Fixed) */}
+      {showJustificationModal && selectedVolunteer?.justification && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          
+          {/* Backdrop - Click to close */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm"
+            onClick={() => setShowJustificationModal(false)}
+          ></div>
+
+          {/* Modal Box - Guaranteed to sit on top of the backdrop */}
+          <div className="relative bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-2 border-emerald-600 z-10 mx-4">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
+              <h2 className="text-xl font-bold text-emerald-900">
+                Team Justification
+              </h2>
+              <button
+                onClick={() => setShowJustificationModal(false)}
+                className="text-gray-400 hover:text-gray-600 font-bold text-3xl cursor-pointer leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+{/* Content */}
+            <div className="max-h-60 overflow-y-auto pr-2">
+              <div className="bg-emerald-50 border-2 border-emerald-400 rounded-lg p-4 shadow-inner">
+                <p className="text-gray-800 leading-relaxed text-base whitespace-pre-wrap italic">
+                  {selectedVolunteer.justification}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowJustificationModal(false)}
+                className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors cursor-pointer shadow-md"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

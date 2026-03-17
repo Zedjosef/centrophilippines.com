@@ -52,11 +52,13 @@ module.exports = async (req, res) => {
     }
 
     // Build the enhanced prompt for OpenAI with proximity-based scoring
-    const prompt = `
+const prompt = `
       As an AI assistant for volunteer management, analyze the following volunteer and event information to provide PROXIMITY-BASED deployment suggestions with weighted scoring:
 
       VOLUNTEER INFORMATION:
       - Name: ${volunteerData.firstname} ${volunteerData.lastname}
+      - Application Type: ${volunteerData.application_type.toUpperCase()}
+      - Team Size: ${volunteerData.team_size} volunteer(s)
       - Days Available: ${volunteerData.days_available || "Not specified"}
       - Time Availability: ${volunteerData.time_availability || "Not specified"}
       - Busy Hours: ${volunteerData.busy_hours || "Not specified"}
@@ -72,7 +74,7 @@ module.exports = async (req, res) => {
       - Event Location: ${eventData.location}
       - Event Objectives: ${eventData.event_objectives}
       - Description: ${eventData.description}
-      - Volunteer Limit: ${eventData.volunteers_limit}
+      - Volunteer Limit: ${eventData.volunteers_limit} maximum volunteers
       - Volunteering Opportunities: ${eventData.volunteer_opportunities}
 
       CRITICAL WEIGHTED SCORING SYSTEM (Total: 100%):
@@ -125,11 +127,12 @@ module.exports = async (req, res) => {
         "reasoning": "detailed explanation including: time overlap calculation, distance/proximity analysis, skill matching rationale, and day availability confirmation. Include actual scores for each factor."
       }
 
-      IMPORTANT NOTES:
+IMPORTANT NOTES:
       - Be STRICT with scoring - don't inflate compatibility scores
       - If time availability doesn't overlap with event time (including call time), set compatibilityScore to 0-10%
       - If location is far (different regions), reduce proximityScore significantly
       - If days available don't match event date, set all scores to 0
+      - TEAM CHECK: If this is a TEAM application, evaluate if the Team Size (${volunteerData.team_size}) is appropriate for the Event Volunteer Limit (${eventData.volunteers_limit}). Mention this in the reasoning.
       - Reasoning should explain each scoring factor clearly
       - Only suggest deployment if compatibilityScore ≥ 60%
     `;

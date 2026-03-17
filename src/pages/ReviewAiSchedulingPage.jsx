@@ -103,22 +103,29 @@ function ReviewAiScheduling() {
     }
   };
 
-  const fetchEventVolunteers = async (eventId, selectedVolunteer) => {
+const fetchEventVolunteers = async (eventId, selectedVolunteer) => {
     try {
-      const { data: eventUsers, error } = await supabase
+      // 1. Fetch Individuals
+      const { data: individualData, error: indError } = await supabase
         .from("Event_User")
-        .select(
-          "user_id, event_id, status, days_available, time_availability, busy_hours"
-        )
+        .select("user_id, event_id, status, days_available, time_availability, busy_hours")
         .eq("event_id", eventId)
         .eq("status", "PENDING");
 
-      if (error) {
-        return;
-      }
+      // 2. Fetch Teams
+      const { data: teamData, error: teamError } = await supabase
+        .from("TeamJoining")
+        .select("user_id, event_id, status, members_names, days_available, time_availability, busy_hours")
+        .eq("event_id", eventId)
+        .eq("status", "PENDING");
+
+      // Merge and Tag
+      const individuals = (individualData || []).map(app => ({ ...app, application_type: 'individual' }));
+      const teams = (teamData || []).map(app => ({ ...app, application_type: 'team' }));
+      const allPending = [...individuals, ...teams];
 
       const volunteersWithDetails = await Promise.all(
-        eventUsers.map(async (eventUser) => {
+        allPending.map(async (eventUser) => {
           const { data: volunteerData, error: userError } = await supabase
             .from("LoginInformation")
             .select(
@@ -127,9 +134,7 @@ function ReviewAiScheduling() {
             .eq("user_id", eventUser.user_id)
             .maybeSingle();
 
-          if (userError) {
-            return null;
-          }
+          if (userError || !volunteerData) return null;
 
           return {
             ...volunteerData,
@@ -137,6 +142,8 @@ function ReviewAiScheduling() {
             time_availability: eventUser.time_availability,
             busy_hours: eventUser.busy_hours,
             event_id: eventUser.event_id,
+            application_type: eventUser.application_type,
+            members_names: eventUser.members_names || null,
           };
         })
       );
@@ -149,6 +156,7 @@ function ReviewAiScheduling() {
       );
       setCurrentVolunteerIndex(currentIndex >= 0 ? currentIndex : 0);
     } catch (error) {
+      console.error("Error fetching event volunteers:", error);
     }
   };
 
@@ -175,7 +183,7 @@ function ReviewAiScheduling() {
     return `${Math.round(duration)} hours`;
   };
 
-  const generateAiSuggestions = async (volunteerData, eventData) => {
+const generateAiSuggestions = async (volunteerData, eventData) => {
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -195,6 +203,11 @@ function ReviewAiScheduling() {
               preferred_volunteering: volunteerData.preferred_volunteering,
               preferred_skills: volunteerData.preferred_skills,
               location: volunteerData.location,
+              // Add these two new lines:
+              application_type: volunteerData.application_type || 'individual',
+              team_size: volunteerData.application_type === 'team' && volunteerData.members_names
+                ? volunteerData.members_names.split('_').filter(n=>n.trim()).length + 1
+                : 1
             },
             eventData: {
               event_id: eventData.event_id,
@@ -540,9 +553,12 @@ function ReviewAiScheduling() {
   };
 
   const handleConfirmApprove = async () => {
-    try {
+try {
+      // 1. Determine which table to update
+      const targetTable = volunteer.application_type === 'team' ? "TeamJoining" : "Event_User";
+
       const { error: updateError } = await supabase
-        .from("Event_User")
+        .from(targetTable) // <-- Use the dynamic table
         .update({ status: "ONGOING" })
         .eq("user_id", volunteer.user_id)
         .eq("event_id", eventDetails.event_id)
@@ -552,7 +568,12 @@ function ReviewAiScheduling() {
         showError("Database Error", "Failed to update status. Please try again.");
         return;
       }
-
+// 2. Accurately update the accepted count
+      const teamSize = volunteer.application_type === 'team' && volunteer.members_names
+        ? volunteer.members_names.split(/[,|-]/).filter(n=>n.trim()).length + 1 
+        : 1;
+      
+      setAcceptedVolunteersCount((prev) => prev + teamSize); // <-- Add full team size
       setShowApproveModal(false);
       setShowSuccessApprove(true);
       setAcceptedVolunteersCount((prev) => prev + 1);
@@ -884,6 +905,22 @@ function ReviewAiScheduling() {
                       )}
                     </ul>
                   </div>
+                  {/* NEW: Team Members Display */}
+                  {volunteer.application_type === 'team' && volunteer.members_names && (
+                    <div className="p-2">
+                      <p className="font-bold text-base text-emerald-900 border-t pt-3 mt-2">
+                        Team Application ({(volunteer.members_names.split(/[,|-|_]/).filter(n=>n.trim()).length + 1)} total)
+                      </p>
+                      <ul className="list-disc list-inside text-gray-700 text-sm space-y-1 mt-1">
+                        <li>
+                          {volunteer.firstname} {volunteer.lastname} <span className="text-xs font-bold text-emerald-600">(Leader)</span>
+                        </li>
+                        {volunteer.members_names.split(/[,|-|_]/).map((name, idx) => (
+                          name.trim() && <li key={idx}>{name.trim()}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
 
