@@ -149,7 +149,6 @@
                         <p className="text-emerald-600 font-montserrat font-bold" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Start</p>
                       </div>
                       <p className="text-emerald-900 font-montserrat font-bold text-sm">{fmtDate(task.startDate)}</p>
-                      {task.startTime && <p className="text-emerald-600 font-montserrat text-xs font-semibold mt-1">{fmtTime(task.startTime)}</p>}
                     </div>
                   )}
                   {/* End */}
@@ -162,7 +161,6 @@
                         <p className="text-orange-600 font-montserrat font-bold" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Deadline</p>
                       </div>
                       <p className="text-orange-900 font-montserrat font-bold text-sm">{fmtDate(task.endDate)}</p>
-                      {task.endTime && <p className="text-orange-500 font-montserrat text-xs font-semibold mt-1">{fmtTime(task.endTime)}</p>}
                     </div>
                   )}
                 </div>
@@ -241,15 +239,7 @@ function TaskCard({ task, onOpenModal }) {
             </span>
           )}
 
-          {/* Time range */}
-          {startTimeStr && endTimeStr && (
-            <span className="flex items-center gap-1 text-xs text-blue-600 font-montserrat">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-semibold">{startTimeStr} – {endTimeStr}</span>
-            </span>
-          )}
+          
         </div>
 
         {/* Status countdown only — no duration pill */}
@@ -903,24 +893,26 @@ function TaskCard({ task, onOpenModal }) {
                       }
                     </span>
                     </div>
-                    <div className="flex items-center hover:text-emerald-800 transition-colors">
-                      <strong>Time:</strong>
-                      <span className="ml-2">
-                        {formatTime(eventData.time_start)} – {formatTime(eventData.time_end)}
-                        {eventData.time_start && eventData.time_end && (
-                          <span className="text-gray-600 ml-2">({calculateDuration(eventData.time_start, eventData.time_end)})</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-center hover:text-emerald-800 transition-colors">
-                      <strong>Location:</strong> <span className="ml-2">{eventData.location || "TBA"}</span>
-                    </div>
-                    {eventData.call_time && (
-                      <div className="flex items-center">
-                        <strong>Call Time:</strong> <span className="ml-2">{formatTime(eventData.call_time)}</span>
-                      </div>
-                    )}
+                {eventData.event_type !== 'multiple' && (
+                  <div className="flex items-center hover:text-emerald-800 transition-colors">
+                    <strong>Time:</strong>
+                    <span className="ml-2">
+                      {formatTime(eventData.time_start)} – {formatTime(eventData.time_end)}
+                      {eventData.time_start && eventData.time_end && (
+                        <span className="text-gray-600 ml-2">({calculateDuration(eventData.time_start, eventData.time_end)})</span>
+                      )}
+                    </span>
                   </div>
+                )}
+                <div className="flex items-center hover:text-emerald-800 transition-colors">
+                  <strong>Location:</strong> <span className="ml-2">{eventData.location || "TBA"}</span>
+                </div>
+                {eventData.event_type !== 'multiple' && eventData.call_time && (
+                  <div className="flex items-center">
+                    <strong>Call Time:</strong> <span className="ml-2">{formatTime(eventData.call_time)}</span>
+                  </div>
+                )}
+                </div>
                 </div>
 
                 <div>

@@ -138,12 +138,12 @@ const fetchEventApplications = async (eventId) => {
 
   const fetchEventDetails = async (eventId) => {
     const { data, error } = await supabase
-      .from("Event_Information")
-      .select(
-        "event_id, event_title, date, time_start, time_end, event_objectives, volunteer_joined, created_at, event_image, status, location, description, volunteers_limit"
-      )
-      .eq("event_id", eventId)
-      .single();
+  .from("Event_Information")
+  .select(
+    "event_id, event_title, date, time_start, time_end, event_objectives, volunteer_joined, created_at, event_image, status, location, description, volunteers_limit, event_type, event_end_date"
+  )
+  .eq("event_id", eventId)
+  .single();
 
     if (error) {
       console.error("Error fetching event details:", error);
@@ -172,6 +172,12 @@ const fetchEventApplications = async (eventId) => {
       </li>
     ));
   };
+
+  const isMultiDayEvent = (dateField) => {
+  if (!dateField) return false;
+  return dateField.includes(",") || dateField.includes(" - ") || dateField.includes("to");
+};
+
 
   const handleSelectEvent = (eventId) => {
     setSelectedEvent(eventId);
@@ -317,24 +323,45 @@ const fetchEventApplications = async (eventId) => {
 
             {selectedEventDetails && (
               <div className="mt-6 bg-white rounded-lg shadow p-6">
-                <h3 className="text-2xl text-emerald-900 font-semibold mb-4">
-                  Event Details
-                </h3>
+                <div className="flex items-center gap-3 mb-4">
+  <h3 className="text-2xl text-emerald-900 font-semibold">
+    Event Details
+  </h3>
+  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+    selectedEventDetails.event_type === 'multiple'
+      ? 'bg-yellow-400 text-emerald-900'
+      : 'bg-emerald-200 text-emerald-900'
+  }`}>
+    {selectedEventDetails.event_type === 'multiple' ? 'Multiple Event' : 'Single Event'}
+  </span>
+</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-lg text-emerald-900 mb-2">
                       <strong>Event Title: </strong>
                       {selectedEventDetails.event_title}
                     </p>
-                    <p className="text-lg text-emerald-900 mb-2">
-                      <strong>Date: </strong>
-                      {new Date(selectedEventDetails.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-lg text-emerald-900 mb-2">
-                      <strong>Time: </strong>
-                      {formatTime(selectedEventDetails.time_start)} -{" "}
-                      {formatTime(selectedEventDetails.time_end)}
-                    </p>
+                     <p className="text-lg text-emerald-900 mb-2">
+  <strong>Date: </strong>
+  {new Date(selectedEventDetails.date).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric"
+  })}
+</p>
+
+{selectedEventDetails.event_type === "multiple" && selectedEventDetails.event_end_date ? (
+  <p className="text-lg text-emerald-900 mb-2">
+    <strong>Until: </strong>
+    {new Date(selectedEventDetails.event_end_date).toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric"
+    })}
+  </p>
+) : (
+  <p className="text-lg text-emerald-900 mb-2">
+    <strong>Time: </strong>
+    {formatTime(selectedEventDetails.time_start)} –{" "}
+    {formatTime(selectedEventDetails.time_end)}
+  </p>
+)}
                     <p className="text-lg text-emerald-900 mb-2">
                       <strong>Location: </strong>
                       {selectedEventDetails.location}
@@ -630,9 +657,9 @@ const fetchEventApplications = async (eventId) => {
         >
           <div className="absolute inset-0 bg-black bg-opacity-60 backdrop-blur-sm"></div>
 
-          <div className="relative bg-white rounded-xl shadow-2xl p-8 w-96 max-w-md mx-4 transform transition-all scale-100 border-2 border-orange-400 z-50">
+          <div className="relative bg-white rounded-xl shadow-2xl p-6 w-96 max-w-md mx-4 transform transition-all scale-100 border-2 border-orange-400 z-50">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-orange-400 w-full max-w-md flex items-center justify-center">
+              <div className="h-16 rounded-full bg-orange-400 w-full max-w-md flex items-center justify-center">
                 <h2 className="text-2xl font-bold text-white mb-2">
                   Review
                 </h2>

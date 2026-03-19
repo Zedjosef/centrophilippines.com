@@ -434,10 +434,17 @@ function ManageReports() {
               <span className="font-semibold text-emerald-900">Date:</span>{" "}
               {formatDate(event.date)}
             </p>
-            <p>
-              <span className="font-semibold text-emerald-900">Duration:</span>{" "}
-              {formatTime(event.time_start)} – {formatTime(event.time_end)}
-            </p>
+            {event.event_type !== "multiple" ? (
+              <p>
+                <span className="font-semibold text-emerald-900">Duration:</span>{" "}
+                {formatTime(event.time_start)} – {formatTime(event.time_end)}
+              </p>
+            ) : event.event_end_date ? (
+              <p>
+                <span className="font-semibold text-emerald-900">Until:</span>{" "}
+                {formatDate(event.event_end_date)}
+              </p>
+            ) : null}
             <p>
               <span className="font-semibold text-emerald-900">Location:</span>{" "}
               {event.location}
@@ -731,8 +738,10 @@ function ManageReports() {
       printKV("Event ID:", event.event_id || "-");
       printKV("Status:", event.status || "TBA");
       printKV("Date:", formatDate(event.date));
-      printKV("Time:", `${formatTime(event.time_start)} – ${formatTime(event.time_end)}${calculateDuration(event.time_start, event.time_end) ? ` (${calculateDuration(event.time_start, event.time_end)})` : ""}`);
-      printKV("Call Time:", event.call_time ? formatTime(event.call_time) : "TBA");
+      if (event.event_type !== "Multiple Event") {
+  printKV("Time:", `${formatTime(event.time_start)} – ${formatTime(event.time_end)}${calculateDuration(event.time_start, event.time_end) ? ` (${calculateDuration(event.time_start, event.time_end)})` : ""}`);
+  printKV("Call Time:", event.call_time ? formatTime(event.call_time) : "TBA");
+}
       printKV("Location:", event.location || "TBA");
 
       if (imageAdded && y < imageStartY + imageHeight + 5) {
