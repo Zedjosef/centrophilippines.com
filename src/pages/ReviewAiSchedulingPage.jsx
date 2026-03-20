@@ -826,14 +826,14 @@ try {
       className="w-20 h-20 rounded-full object-cover border-4 border-emerald-600 shadow-lg flex-shrink-0"
     />
     <div className="flex-1 min-w-0">
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: '#064e3b' }} className="truncate">
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.3rem', color: '#064e3b' }} className="truncate">
         {volunteer.firstname} {volunteer.lastname}
       </p>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', color: '#6b7280' }} className="truncate mt-1">
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#6b7280' }} className="truncate mt-1">
         {volunteer.email}
       </p>
       {volunteer.contact_number && (
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', color: '#6b7280' }} className="mt-0.5">
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#6b7280' }} className="mt-0.5">
           {volunteer.contact_number}
         </p>
       )}
@@ -845,72 +845,73 @@ try {
 
     {/* Days Available */}
     <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '10px 14px', border: '1px solid #d1fae5' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Days Available</p>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.days_available || "Not specified"}</p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Days Available</p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'}}>{volunteer.days_available || "Not specified"}</p>
     </div>
 
     {/* Time of Availability — single event only */}
     {eventDetails.event_type !== 'multiple' && (
       <div style={{ background: '#eff6ff', borderRadius: 10, padding: '10px 14px', border: '1px solid #bfdbfe' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Time of Availability</p>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.time_availability || "Not specified"}</p>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Time of Availability</p>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'
+ }}>{volunteer.time_availability || "Not specified"}</p>
       </div>
     )}
 
     {/* Busy Hours — single event only */}
     {eventDetails.event_type !== 'multiple' && (
       <div style={{ background: '#fff1f2', borderRadius: 10, padding: '10px 14px', border: '1px solid #fecdd3' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Busy Hours</p>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.busy_hours || "Not specified"}</p>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Busy Hours</p>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'
+ }}>{volunteer.busy_hours || "Not specified"}</p>
       </div>
     )}
 
     {/* Location */}
     <div style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 14px', border: '1px solid #fde68a' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Location</p>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.location || "Not specified"}</p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Location</p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'
+ }}>{volunteer.location || "Not specified"}</p>
     </div>
 
     {/* Preferred Type of Volunteering */}
     <div style={{ background: '#f5f3ff', borderRadius: 10, padding: '10px 14px', border: '1px solid #ddd6fe' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Volunteering</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Volunteering</p>
+      <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
         {volunteer.preferred_volunteering
           ? volunteer.preferred_volunteering.split(",").map((type, idx) => (
-              <p key={idx} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>• {type.trim()}</p>
+              <li key={idx}>{type.trim()}</li>
             ))
-          : <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>Not specified</p>
+          : <li>Not specified</li>
         }
-      </div>
+      </ul>
     </div>
 
     {/* Preferred Skills */}
     <div style={{ background: '#fff7ed', borderRadius: 10, padding: '10px 14px', border: '1px solid #fed7aa' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Skills</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Skills</p>
+      <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
         {volunteer.preferred_skills
           ? volunteer.preferred_skills.split(",").map((skill, idx) => (
-              <p key={idx} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>• {skill.trim()}</p>
+              <li key={idx}>{skill.trim()}</li>
             ))
-          : <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>Not specified</p>
+          : <li>Not specified</li>
         }
-      </div>
+      </ul>
     </div>
 
     {/* Team Application — multiple event only */}
     {eventDetails.event_type === 'multiple' && volunteer.application_type === 'team' && volunteer.members_names && (
       <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '10px 14px', border: '2px solid #6ee7b7' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
           Team Application ({volunteer.members_names.split(/[,|-|_]/).filter(n => n.trim()).length + 1} total)
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>
-            • {volunteer.firstname} {volunteer.lastname} <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#059669' }}>(Leader)</span>
-          </p>
+        <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
+          <li>{volunteer.firstname} {volunteer.lastname} <span style={{ fontWeight: 700, color: '#059669' }}>(Leader)</span></li>
           {volunteer.members_names.split(/[,|-|_]/).map((name, idx) =>
-            name.trim() && <p key={idx} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>• {name.trim()}</p>
+            name.trim() && <li key={idx}>{name.trim()}</li>
           )}
-        </div>
+        </ul>
       </div>
     )}
 
