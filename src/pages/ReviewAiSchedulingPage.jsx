@@ -211,6 +211,7 @@ const generateAiSuggestions = async (volunteerData, eventData) => {
             },
             eventData: {
               event_id: eventData.event_id,
+              event_type: eventData.event_type,
               event_title: eventData.event_title,
               date: eventData.date,
               time_start: formatTime(eventData.time_start),
@@ -277,6 +278,22 @@ const generateAiSuggestions = async (volunteerData, eventData) => {
   };
 
   const createStrictFallbackSuggestions = (volunteerData, eventData) => {
+    if (eventData.event_type === 'multiple') {
+      return {
+        recommendedTimeSlot: "Multi-day Event Schedule",
+        duration: "Variable",
+        matchingVolunteerTypes: getMatchingTypes(
+          volunteerData.preferred_volunteering,
+          eventData.volunteer_opportunities
+        ),
+        compatibilityScore: "100",
+        timeOverlapScore: "50",
+        proximityScore: "30",
+        skillMatchScore: "15",
+        dayMatchScore: "5",
+        reasoning: "Automatic 100% compatibility score for Multiple Event / Team Application.",
+      };
+    }
     const eventStart = parseTime(eventData.time_start);
     const eventEnd = parseTime(eventData.time_end);
 
