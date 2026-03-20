@@ -803,7 +803,7 @@ try {
             style={{ backgroundColor: "#0A6E50" }}
           >
             <span />
-            <h2 className="font-extrabold text-white text-2xl tracking-wide uppercase">
+            <h2 class="text-white text-4xl font-montserrat font-extrabold">
               {eventDetails.event_title}
             </h2>
             <Link to="/review-application-event">
@@ -817,112 +817,105 @@ try {
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50">
             <div className="flex">
               {/* Left Panel - Volunteer Details */}
-              <div className="w-2/5 px-6 py-6 border-r-2 border-emerald-200 bg-white">
-                <div className="flex items-start gap-4 mb-4">
-                  <img
-                    src={
-                      volunteer.profile_picture ||
-                      "https://via.placeholder.com/150"
-                    }
-                    alt={volunteer.firstname}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-emerald-600 shadow-lg flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-xl text-emerald-900 truncate">
-                      {volunteer.firstname} {volunteer.lastname}
-                    </p>
-                    <p className="text-sm text-gray-600 truncate">
-                      {volunteer.email}
-                    </p>
-                    {volunteer.contact_number && (
-                      <p className="text-sm text-gray-600">
-                        {volunteer.contact_number}
-                      </p>
-                    )}
-                  </div>
-                </div>
+              <div className="w-2/5 px-6 py-6 border-r-2 border-emerald-200 bg-white overflow-y-auto">
+  {/* Profile */}
+  <div className="flex items-center gap-4 mb-5 pb-4 border-b border-emerald-100">
+    <img
+      src={volunteer.profile_picture || "https://via.placeholder.com/150"}
+      alt={volunteer.firstname}
+      className="w-20 h-20 rounded-full object-cover border-4 border-emerald-600 shadow-lg flex-shrink-0"
+    />
+    <div className="flex-1 min-w-0">
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: '#064e3b' }} className="truncate">
+        {volunteer.firstname} {volunteer.lastname}
+      </p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', color: '#6b7280' }} className="truncate mt-1">
+        {volunteer.email}
+      </p>
+      {volunteer.contact_number && (
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', color: '#6b7280' }} className="mt-0.5">
+          {volunteer.contact_number}
+        </p>
+      )}
+    </div>
+  </div>
 
-                <div className="space-y-1 w-full">
-                  <div className="p-2 ">
-                    <p className="font-bold text-base text-emerald-900">
-                      Days Available
-                    </p>
-                    <p className="text-gray-700 text-sm">
-                      {volunteer.days_available || "Not specified"}
-                    </p>
-                  </div>
+  {/* Info rows */}
+  <div className="flex flex-col gap-3">
 
-                  <div className="p-2">
-                    <p className="font-bold text-base text-emerald-900">
-                      Time of Availability
-                    </p>
-                    <p className="text-gray-700 text-sm">
-                      {volunteer.time_availability || "Not specified"}
-                    </p>
-                  </div>
+    {/* Days Available */}
+    <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '10px 14px', border: '1px solid #d1fae5' }}>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Days Available</p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.days_available || "Not specified"}</p>
+    </div>
 
-                  <div className="p-2">
-                    <p className="font-bold text-base text-red-700">Busy Hours</p>
-                    <p className="text-gray-700 text-sm">
-                      {volunteer.busy_hours || "Not specified"}
-                    </p>
-                  </div>
+    {/* Time of Availability — single event only */}
+    {eventDetails.event_type !== 'multiple' && (
+      <div style={{ background: '#eff6ff', borderRadius: 10, padding: '10px 14px', border: '1px solid #bfdbfe' }}>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Time of Availability</p>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.time_availability || "Not specified"}</p>
+      </div>
+    )}
 
-                  <div className="p-2">
-                    <p className="font-bold text-base text-emerald-900">
-                      Location
-                    </p>
-                    <p className="text-gray-700 text-sm">
-                      {volunteer.location || "Not specified"}
-                    </p>
-                  </div>
+    {/* Busy Hours — single event only */}
+    {eventDetails.event_type !== 'multiple' && (
+      <div style={{ background: '#fff1f2', borderRadius: 10, padding: '10px 14px', border: '1px solid #fecdd3' }}>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Busy Hours</p>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.busy_hours || "Not specified"}</p>
+      </div>
+    )}
 
-                  <div className="p-2">
-                    <p className="font-bold text-base text-emerald-900">
-                      Preferred Type of Volunteering
-                    </p>
-                    <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
-                      {volunteer.preferred_volunteering ? (
-                        volunteer.preferred_volunteering
-                          .split(",")
-                          .map((type, idx) => <li key={idx}>{type.trim()}</li>)
-                      ) : (
-                        <li>Not specified</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div className="p-2">
-                    <p className="font-bold text-base text-emerald-900">
-                      Preferred Skills
-                    </p>
-                    <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
-                      {volunteer.preferred_skills ? (
-                        volunteer.preferred_skills
-                          .split(",")
-                          .map((skill, idx) => <li key={idx}>{skill.trim()}</li>)
-                      ) : (
-                        <li>Not specified</li>
-                      )}
-                    </ul>
-                  </div>
-                  {/* NEW: Team Members Display */}
-                  {volunteer.application_type === 'team' && volunteer.members_names && (
-                    <div className="p-2">
-                      <p className="font-bold text-base text-emerald-900 border-t pt-3 mt-2">
-                        Team Application ({(volunteer.members_names.split(/[,|-|_]/).filter(n=>n.trim()).length + 1)} total)
-                      </p>
-                      <ul className="list-disc list-inside text-gray-700 text-sm space-y-1 mt-1">
-                        <li>
-                          {volunteer.firstname} {volunteer.lastname} <span className="text-xs font-bold text-emerald-600">(Leader)</span>
-                        </li>
-                        {volunteer.members_names.split(/[,|-|_]/).map((name, idx) => (
-                          name.trim() && <li key={idx}>{name.trim()}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
+    {/* Location */}
+    <div style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 14px', border: '1px solid #fde68a' }}>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Location</p>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>{volunteer.location || "Not specified"}</p>
+    </div>
+
+    {/* Preferred Type of Volunteering */}
+    <div style={{ background: '#f5f3ff', borderRadius: 10, padding: '10px 14px', border: '1px solid #ddd6fe' }}>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Volunteering</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {volunteer.preferred_volunteering
+          ? volunteer.preferred_volunteering.split(",").map((type, idx) => (
+              <p key={idx} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>• {type.trim()}</p>
+            ))
+          : <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>Not specified</p>
+        }
+      </div>
+    </div>
+
+    {/* Preferred Skills */}
+    <div style={{ background: '#fff7ed', borderRadius: 10, padding: '10px 14px', border: '1px solid #fed7aa' }}>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Skills</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {volunteer.preferred_skills
+          ? volunteer.preferred_skills.split(",").map((skill, idx) => (
+              <p key={idx} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>• {skill.trim()}</p>
+            ))
+          : <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>Not specified</p>
+        }
+      </div>
+    </div>
+
+    {/* Team Application — multiple event only */}
+    {eventDetails.event_type === 'multiple' && volunteer.application_type === 'team' && volunteer.members_names && (
+      <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '10px 14px', border: '2px solid #6ee7b7' }}>
+        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.7rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+          Team Application ({volunteer.members_names.split(/[,|-|_]/).filter(n => n.trim()).length + 1} total)
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>
+            • {volunteer.firstname} {volunteer.lastname} <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#059669' }}>(Leader)</span>
+          </p>
+          {volunteer.members_names.split(/[,|-|_]/).map((name, idx) =>
+            name.trim() && <p key={idx} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', color: '#374151' }}>• {name.trim()}</p>
+          )}
+        </div>
+      </div>
+    )}
+
+  </div>
+</div>
 
               {/* Right Panel - AI Suggestions */}
               <div className="w-3/5 px-6 py-6"></div>
@@ -943,38 +936,53 @@ try {
 
                 {/* Event Details Section */}
                 <div className="bg-white rounded-lg p-4 mb-4 border border-emerald-300">
-                  <h4 className="font-bold text-emerald-900 text-lg mb-3 border-b border-emerald-300 pb-2">
-                    Event Details
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                 <div className="flex items-center justify-between mb-2 border-b border-emerald-300 pb-2">
+                  <h4 className="font-bold text-emerald-900 text-lg">Event Details</h4>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                    eventDetails.event_type === 'multiple'
+                      ? 'bg-yellow-400 text-emerald-900'
+                      : 'bg-emerald-200 text-emerald-900'
+                  }`}>
+                    {eventDetails.event_type === 'multiple' ? 'Multiple Event' : 'Single Event'}
+                  </span>
+                </div>
+                  <div className="grid grid-cols-2 gap-2 gap-y-3 text-sm">
                     <div>
                       <p className="font-semibold text-emerald-800">Description:</p>
                       <p className="text-gray-700">{eventDetails.description || "N/A"}</p>
                     </div>
                     <div>
-                      <p className="font-semibold text-emerald-800">Date:</p>
-                      <p className="text-gray-700">{formatDate(eventDetails.date)}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-emerald-800">Time:</p>
-                      <p className="text-gray-700">
-                        {formatTime(eventDetails.time_start)} - {formatTime(eventDetails.time_end)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-emerald-800">Call Time:</p>
-                      <p className="text-gray-700">{formatCallTime(eventDetails.call_time)}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-emerald-800">Duration:</p>
-                      <p className="text-gray-700">
-                        {calculateEventDuration(
-                          formatTime(eventDetails.time_start),
-                          formatTime(eventDetails.time_end),
-                          eventDetails.call_time
-                        )}
-                      </p>
-                    </div>
+                    <p className="font-semibold text-emerald-800">Date:</p>
+                    <p className="text-gray-700">{formatDate(eventDetails.date)}</p>
+                    {eventDetails.event_type === 'multiple' && eventDetails.event_end_date && (
+                      <p className="text-gray-700">until {formatDate(eventDetails.event_end_date)}</p>
+                    )}
+                  </div>
+                  
+                    {eventDetails.event_type !== 'multiple' && (
+                    <>
+                      <div>
+                        <p className="font-semibold text-emerald-800">Time:</p>
+                        <p className="text-gray-700">
+                          {formatTime(eventDetails.time_start)} - {formatTime(eventDetails.time_end)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-emerald-800">Call Time:</p>
+                        <p className="text-gray-700">{formatCallTime(eventDetails.call_time)}</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-emerald-800">Duration:</p>
+                        <p className="text-gray-700">
+                          {calculateEventDuration(
+                            formatTime(eventDetails.time_start),
+                            formatTime(eventDetails.time_end),
+                            eventDetails.call_time
+                          )}
+                        </p>
+                      </div>
+                    </>
+                  )}
                     <div>
                       <p className="font-semibold text-emerald-800">Location:</p>
                       <p className="text-gray-700">{eventDetails.location || "N/A"}</p>
@@ -1007,6 +1015,7 @@ try {
                   <>
                     <div className="flex justify-between items-start mb-6 gap-4">
                       <div className="flex-1">
+                        {eventDetails.event_type !== 'multiple' && (
                         <div className="mb-4">
                           <p className="font-bold text-xl text-emerald-900">
                             Recommended Time &amp; Duration
@@ -1018,6 +1027,7 @@ try {
                             </span>
                           </p>
                         </div>
+                      )}
 
                         <div className="mb-4">
                           <p className="font-bold text-xl text-emerald-900">
@@ -1092,6 +1102,7 @@ try {
                       >
                         Approve
                       </button>
+                      {eventDetails.event_type !== 'multiple' && (
                       <button
                         onClick={handleAdjustSchedule}
                         disabled={parseInt(aiSuggestions.compatibilityScore) <= 50}
@@ -1103,6 +1114,7 @@ try {
                       >
                         Adjust
                       </button>
+                    )}
                       <button
                         onClick={handleShowRejectModal}
                         className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-700 text-md font-semibold cursor-pointer"
