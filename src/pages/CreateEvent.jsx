@@ -581,7 +581,7 @@ function CreateEvent() {
     // Load Google Maps API
     if (!window.google) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async`;
       script.async = true;
       script.defer = true;
       script.onload = initializeAutocomplete;
