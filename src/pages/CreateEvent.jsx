@@ -516,8 +516,6 @@ function CreateEvent() {
       description: "",
       startDate: "",
       endDate: "",
-      startTime: "",
-      endTime: ""
     }
   ]);
 
@@ -1006,8 +1004,6 @@ function CreateEvent() {
         description: "",
         startDate: "",
         endDate: "",
-        startTime: "",
-        endTime: ""
       }]);
     } else {
       setModalConfig({
@@ -1181,16 +1177,13 @@ function CreateEvent() {
             taskData[`description_${suffix}`] = task.description;
           }
 
-          // Save start and end as full timestamps (task_start_one, task_end_one, etc.)
+// Save start and end dates (task_start_one, task_end_one, etc.)
           if (eventType === 'multiple') {
-            if (task.startDate && task.startTime) {
-              // task.startTime is in "8:00 AM" format — convert to 24hr first
-              const cleanStart = convertTo24Hour(task.startTime);
-              taskData[`task_start_${suffix}`] = `${task.startDate} ${cleanStart}`;
+            if (task.startDate) {
+              taskData[`task_start_${suffix}`] = task.startDate;
             }
-            if (task.endDate && task.endTime) {
-              const cleanEnd = convertTo24Hour(task.endTime);
-              taskData[`task_end_${suffix}`] = `${task.endDate} ${cleanEnd}`;
+            if (task.endDate) {
+              taskData[`task_end_${suffix}`] = task.endDate;
             }
           }
         }
@@ -2078,17 +2071,6 @@ function CreateEvent() {
                           <span className="font-bold text-emerald-700">End Date:</span> {formatDate(task.endDate)}
                         </p>
                       </div>
-
-                      {/* Clearer End Schedule */}
-                      <div>
-                        <p className="text-gray-700">
-                          <span className="font-bold text-emerald-700">Start Time:</span> {task.startTime}
-                        </p>
-                        <p className="text-gray-700">
-                          <span className="font-bold text-emerald-700">End Time:</span> {task.endTime}
-                        </p>
-                      </div>
-                    </div>
                   )}
 
                   <p className="text-emerald-800 text-[11px] font-bold uppercase mb-1">Task Description:</p>
