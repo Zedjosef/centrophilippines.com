@@ -104,61 +104,56 @@ function ReviewAiScheduling() {
   };
 
 const fetchEventVolunteers = async (eventId, selectedVolunteer) => {
-    try {
-      // 1. Fetch Individuals
-      const { data: individualData, error: indError } = await supabase
-        .from("Event_User")
-        .select("user_id, event_id, status, days_available, time_availability, busy_hours")
-        .eq("event_id", eventId)
-        .eq("status", "PENDING");
+  try {
+    const { data: individualData } = await supabase
+      .from("Event_User")
+      .select("user_id, event_id, status, days_available, time_availability, busy_hours")
+      .eq("event_id", eventId)
+      .eq("status", "PENDING");
 
-      // 2. Fetch Teams
-      const { data: teamData, error: teamError } = await supabase
-        .from("TeamJoining")
-        .select("user_id, event_id, status, members_names, days_available, time_availability, busy_hours")
-        .eq("event_id", eventId)
-        .eq("status", "PENDING");
+    const { data: teamData } = await supabase
+      .from("TeamJoining")
+      .select("user_id, event_id, status, members_names, adjusted_volunteer_type, adjustment_noted")
+      .eq("event_id", eventId)
+      .eq("status", "PENDING");
 
-      // Merge and Tag
-      const individuals = (individualData || []).map(app => ({ ...app, application_type: 'individual' }));
-      const teams = (teamData || []).map(app => ({ ...app, application_type: 'team' }));
-      const allPending = [...individuals, ...teams];
+    const individuals = (individualData || []).map(app => ({ ...app, application_type: 'individual' }));
+    const teams = (teamData || []).map(app => ({ ...app, application_type: 'team' }));
+    const allPending = [...individuals, ...teams];
 
-      const volunteersWithDetails = await Promise.all(
-        allPending.map(async (eventUser) => {
-          const { data: volunteerData, error: userError } = await supabase
-            .from("LoginInformation")
-            .select(
-              "user_id, firstname, lastname, email, profile_picture, preferred_volunteering, preferred_skills, contact_number, location"
-            )
-            .eq("user_id", eventUser.user_id)
-            .maybeSingle();
+    const volunteersWithDetails = await Promise.all(
+      allPending.map(async (eventUser) => {
+        const { data: volunteerData } = await supabase
+          .from("LoginInformation")
+          .select("user_id, firstname, lastname, email, profile_picture, preferred_volunteering, preferred_skills, contact_number, location")
+          .eq("user_id", eventUser.user_id)
+          .maybeSingle();
 
-          if (userError || !volunteerData) return null;
+        if (!volunteerData) return null;
 
-          return {
-            ...volunteerData,
-            days_available: eventUser.days_available,
-            time_availability: eventUser.time_availability,
-            busy_hours: eventUser.busy_hours,
-            event_id: eventUser.event_id,
-            application_type: eventUser.application_type,
-            members_names: eventUser.members_names || null,
-          };
-        })
-      );
+        return {
+          ...volunteerData,
+          days_available: eventUser.days_available || null,
+          time_availability: eventUser.time_availability || null,
+          busy_hours: eventUser.busy_hours || null,
+          event_id: eventUser.event_id,
+          application_type: eventUser.application_type,
+          members_names: eventUser.members_names || null,
+        };
+      })
+    );
 
-      const filteredVolunteers = volunteersWithDetails.filter((v) => v !== null);
-      setAllVolunteers(filteredVolunteers);
+    const filteredVolunteers = volunteersWithDetails.filter((v) => v !== null);
+    setAllVolunteers(filteredVolunteers);
 
-      const currentIndex = filteredVolunteers.findIndex(
-        (v) => v.user_id === selectedVolunteer?.user_id
-      );
-      setCurrentVolunteerIndex(currentIndex >= 0 ? currentIndex : 0);
-    } catch (error) {
-      console.error("Error fetching event volunteers:", error);
-    }
-  };
+    const currentIndex = filteredVolunteers.findIndex(
+      (v) => v.user_id === selectedVolunteer?.user_id
+    );
+    setCurrentVolunteerIndex(currentIndex >= 0 ? currentIndex : 0);
+  } catch (error) {
+    console.error("Error fetching event volunteers:", error);
+  }
+};
 
   const calculateEventDuration = (timeStart, timeEnd, callTime) => {
     const parseTime = (timeStr) => {
@@ -298,16 +293,32 @@ const generateAiSuggestions = async (volunteerData, eventData) => {
     const eventEnd = parseTime(eventData.time_end);
 
     if (!volunteerData.time_availability) {
-      return {
-        recommendedTimeSlot: "No time availability specified",
-        duration: "0 hours",
-        matchingVolunteerTypes: ["General Volunteering"],
-        compatibilityScore: "0",
+  if (volunteerData.application_type === 'team') {
+  const skillMatch = getMatchingTypes(volunteerData.preferred_volunteering, eventData.volunteer_opportunities).length > 1 ? 20 : 10;
+  const proximityScore = 20;
+  const finalScore = Math.round(skillMatch + proximityScore);
+  return {
+    recommendedTimeSlot: "Flexible (Team Application)",
+    duration: "Full Event Duration",
+    matchingVolunteerTypes: getMatchingTypes(volunteerData.preferred_volunteering, eventData.volunteer_opportunities),
+    compatibilityScore: finalScore.toString(),
+    timeOverlapScore: "0",
+    proximityScore: proximityScore.toString(),
+    skillMatchScore: skillMatch.toString(),
+    reasoning: `No time data provided. Proximity: ${proximityScore}%, Skills: ${skillMatch}%`,
+  };
+  } else {
+  return {
+    recommendedTimeSlot: "No time availability specified",
+    duration: "0 hours",
+    matchingVolunteerTypes: ["General Volunteering"],
+    compatibilityScore: "0",
         proximityScore: "0",
         timeOverlapScore: "0",
         skillMatchScore: "0",
         reasoning: "Volunteer has not specified their time availability.",
       };
+    }
     }
 
     const availabilityMatch = volunteerData.time_availability.match(
@@ -824,7 +835,7 @@ try {
               {eventDetails.event_title}
             </h2>
             <Link to="/review-application-event">
-              <button className="text-white text-3xl font-bold hover:text-gray-200 transition-colors">
+              <button className="text-white text-5xl w-10 h-10 flex items-center justify-center rounded-full cursor-pointer  hover:bg-emerald-700 transition-all duration-300 transform hover:scale-105">
                 ×
               </button>
             </Link>
@@ -860,77 +871,74 @@ try {
   {/* Info rows */}
   <div className="flex flex-col gap-3">
 
-    {/* Days Available */}
-    <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '10px 14px', border: '1px solid #d1fae5' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Days Available</p>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'}}>{volunteer.days_available || "Not specified"}</p>
-    </div>
+ {/* Days Available */}
+<div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+  <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Days Available</p>
+  <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>{volunteer.days_available || "Not specified"}</p>
+</div>
 
-    {/* Time of Availability — single event only */}
-    {eventDetails.event_type !== 'multiple' && (
-      <div style={{ background: '#eff6ff', borderRadius: 10, padding: '10px 14px', border: '1px solid #bfdbfe' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Time of Availability</p>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'
- }}>{volunteer.time_availability || "Not specified"}</p>
-      </div>
-    )}
+{/* Time of Availability */}
+{eventDetails.event_type !== 'multiple' && (
+  <div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+    <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Time of Availability</p>
+    <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>{volunteer.time_availability || "Not specified"}</p>
+  </div>
+)}
 
-    {/* Busy Hours — single event only */}
-    {eventDetails.event_type !== 'multiple' && (
-      <div style={{ background: '#fff1f2', borderRadius: 10, padding: '10px 14px', border: '1px solid #fecdd3' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Busy Hours</p>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'
- }}>{volunteer.busy_hours || "Not specified"}</p>
-      </div>
-    )}
+{/* Busy Hours */}
+{eventDetails.event_type !== 'multiple' && (
+  <div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+    <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Busy Hours</p>
+    <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>{volunteer.busy_hours || "Not specified"}</p>
+  </div>
+)}
 
-    {/* Location */}
-    <div style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 14px', border: '1px solid #fde68a' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Location</p>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827'
- }}>{volunteer.location || "Not specified"}</p>
-    </div>
+{/* Location */}
+<div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+  <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Location</p>
+  <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>{volunteer.location || "Not specified"}</p>
+</div>
 
-    {/* Preferred Type of Volunteering */}
-    <div style={{ background: '#f5f3ff', borderRadius: 10, padding: '10px 14px', border: '1px solid #ddd6fe' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Volunteering</p>
-      <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
-        {volunteer.preferred_volunteering
-          ? volunteer.preferred_volunteering.split(",").map((type, idx) => (
-              <li key={idx}>{type.trim()}</li>
-            ))
-          : <li>Not specified</li>
-        }
-      </ul>
-    </div>
+{/* Preferred Volunteering */}
+<div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+  <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Volunteering</p>
+  <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
+    {volunteer.preferred_volunteering
+      ? volunteer.preferred_volunteering.split(",").map((type, idx) => (
+          <li key={idx}>{type.trim()}</li>
+        ))
+      : <li>Not specified</li>
+    }
+  </ul>
+</div>
 
-    {/* Preferred Skills */}
-    <div style={{ background: '#fff7ed', borderRadius: 10, padding: '10px 14px', border: '1px solid #fed7aa' }}>
-      <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Skills</p>
-      <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
-        {volunteer.preferred_skills
-          ? volunteer.preferred_skills.split(",").map((skill, idx) => (
-              <li key={idx}>{skill.trim()}</li>
-            ))
-          : <li>Not specified</li>
-        }
-      </ul>
-    </div>
+{/* Preferred Skills */}
+<div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+  <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Preferred Skills</p>
+  <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
+    {volunteer.preferred_skills
+      ? volunteer.preferred_skills.split(",").map((skill, idx) => (
+          <li key={idx}>{skill.trim()}</li>
+        ))
+      : <li>Not specified</li>
+    }
+  </ul>
+</div>
 
-    {/* Team Application — multiple event only */}
-    {eventDetails.event_type === 'multiple' && volunteer.application_type === 'team' && volunteer.members_names && (
-      <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '10px 14px', border: '2px solid #6ee7b7' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
-          Team Application ({volunteer.members_names.split(/[,|-|_]/).filter(n => n.trim()).length + 1} total)
-        </p>
-        <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
-          <li>{volunteer.firstname} {volunteer.lastname} <span style={{ fontWeight: 700, color: '#059669' }}>(Leader)</span></li>
-          {volunteer.members_names.split(/[,|-|_]/).map((name, idx) =>
-            name.trim() && <li key={idx}>{name.trim()}</li>
-          )}
-        </ul>
-      </div>
-    )}
+{/* Team Application */}
+{volunteer.application_type === 'team' && volunteer.members_names && (
+  <div className="bg-emerald-50 rounded-lg p-3 border-2 border-emerald-700">
+    <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+      Team Application ({volunteer.members_names.split(/[,|-|_]/).filter(n => n.trim()).length + 1} total)
+    </p>
+    <ul className="list-disc list-inside" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#111827' }}>
+      <li>{volunteer.firstname} {volunteer.lastname} <span style={{ fontWeight: 700, color: '#059669' }}>(Leader)</span></li>
+      {volunteer.members_names.split(/[,|-|_]/).map((name, idx) =>
+        name.trim() && <li key={idx}>{name.trim()}</li>
+      )}
+    </ul>
+  </div>
+)}
 
   </div>
 </div>
@@ -953,7 +961,7 @@ try {
                 </p>
 
                 {/* Event Details Section */}
-                <div className="bg-white rounded-lg p-4 mb-4 border border-emerald-300">
+                <div className="bg-white rounded-lg p-4 mb-4 border-2 border-emerald-700">
                  <div className="flex items-center justify-between mb-2 border-b border-emerald-300 pb-2">
                   <h4 className="font-bold text-emerald-900 text-lg">Event Details</h4>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${
@@ -1088,7 +1096,7 @@ try {
                       </div>
 
                       <div className="flex flex-col gap-3 flex-shrink-0">
-                        <div className="border-yellow-400 border-2 bg-white rounded-xl shadow-lg w-48 h-36 flex flex-col items-center justify-center text-center p-3">
+                        <div className="border-emerald-700 border-2 bg-white rounded-xl shadow-lg w-48 h-36 flex flex-col items-center justify-center text-center p-3">
                           <p className="text-sm font-semibold text-emerald-800 mb-2">
                             Compatibility Score
                           </p>
@@ -1097,7 +1105,7 @@ try {
                           </p>
                         </div>
 
-                        <div className="border-blue-400 border-2 bg-white rounded-xl shadow-lg w-48 h-36 flex flex-col items-center justify-center text-center p-3">
+                        <div className="border-emerald-700 border-2 bg-white rounded-xl shadow-lg w-48 h-36 flex flex-col items-center justify-center text-center p-3">
                           <p className="text-sm font-semibold text-emerald-800 mb-2">
                             Accepted Volunteers
                           </p>
@@ -1174,7 +1182,7 @@ try {
               disabled={currentVolunteerIndex <= 0}
               className={`border font-semibold px-4 py-2 rounded-lg text-md cursor-pointer ${currentVolunteerIndex <= 0
                   ? "border-gray-500 text-gray-300 cursor-not-allowed"
-                  : "border-emerald-600 text-emerald-600 hover:bg-emerald-100"
+                  : "border-emerald-700 text-emerald-600 hover:bg-emerald-100"
                 }`}
             >
               Previous ({currentVolunteerIndex + 1} of{" "}

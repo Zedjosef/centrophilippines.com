@@ -42,9 +42,14 @@ export default function ReviewApplicationEventPage() {
        } else {
   setEvents(data);
   if (data.length > 0) {
-    const lastEventId = sessionStorage.getItem("lastSelectedEvent");
-    const eventExists = data.find(e => e.event_id === lastEventId);
-    const eventToLoad = eventExists ? lastEventId : data[0].event_id;
+    const adminData2 = JSON.parse(localStorage.getItem("admin"));
+const sessionKey = `lastSelectedEvent_${adminData2?.NGO_Information?.ngo_code}`;
+const lastEventId = sessionStorage.getItem(sessionKey);
+const eventExists = data.find(
+  e => String(e.event_id).trim() === String(lastEventId).trim()
+);const eventToLoad = eventExists 
+  ? eventExists.event_id 
+  : data[0].event_id;
 
     setSelectedEvent(eventToLoad);
     fetchEventDetails(eventToLoad);
@@ -83,14 +88,12 @@ export default function ReviewApplicationEventPage() {
   }, [showCentroConfirm]);
 
 const fetchEventApplications = async (eventId) => {
-  // 🔍 Safety check
   if (!eventId) {
     console.error("❌ eventId is missing:", eventId);
     return;
   }
 
   const safeEventId = String(eventId).trim();
-  console.log("✅ Using eventId:", safeEventId);
 
   // 1. Fetch individual applicants
   const { data: individualData, error: individualError } = await supabase
@@ -99,51 +102,48 @@ const fetchEventApplications = async (eventId) => {
     .eq("event_id", safeEventId)
     .eq("status", "PENDING");
 
-  if (individualError) {
-    console.error("❌ Individual fetch error:", individualError);
-  }
+  if (individualError) console.error("❌ Individual fetch error:", individualError);
 
-  // 2. Fetch team applicants
-  const { data: teamData, error: teamError } = await supabase
-    .from("TeamJoining")
-    .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status, justification")
-    .eq("event_id", safeEventId)
-    .eq("status", "PENDING");
+  // 2. Fetch team applicants — only columns that actually exist
+const { data: teamData, error: teamError } = await supabase
+  .from("TeamJoining")
+  .select("user_id, event_id, members_names, status, adjusted_volunteer_type, adjustment_noted")
+  .eq("event_id", safeEventId)
+  .eq("status", "PENDING");
 
-  if (teamError) {
-    console.error("❌ Team fetch error (FULL):", JSON.stringify(teamError, null, 2));
-  }
+  if (teamError) console.error("❌ Team fetch error:", JSON.stringify(teamError, null, 2));
 
-  // 🧪 DEBUG: Check raw results
-  console.log("👤 Individuals:", individualData);
-  console.log("👥 Teams:", teamData);
-
-  // 3. Merge
   const individuals = (individualData || []).map(app => ({
     ...app,
     application_type: "individual"
   }));
 
   const teams = (teamData || []).map(app => ({
-    ...app,
-    application_type: "team"
-  }));
+  ...app,
+  days_available: null,
+  time_availability: null,
+  busy_hours: null,
+  justification: app.adjustment_noted || null, // map adjustment_noted → justification
+  application_type: "team"
+}));
 
   const allApplications = [...individuals, ...teams];
 
-  // 4. Fetch user info
+  // 3. Fetch user info — use .maybeSingle() instead of .single() to avoid 406
   const volunteerApplications = await Promise.all(
     allApplications.map(async (app) => {
       const { data: volunteerData, error: userError } = await supabase
         .from("LoginInformation")
         .select("user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills")
         .eq("user_id", app.user_id)
-        .single();
+        .maybeSingle(); // ← key fix: won't throw 406 if row not found
 
       if (userError) {
         console.error("❌ User fetch error:", userError);
         return null;
       }
+
+      if (!volunteerData) return null; // row not found, skip
 
       return {
         ...volunteerData,
@@ -208,7 +208,9 @@ const fetchEventApplications = async (eventId) => {
 
   const handleSelectEvent = (eventId) => {
   setSelectedEvent(eventId);
-  sessionStorage.setItem("lastSelectedEvent", eventId); // <-- add this
+const adminData2 = JSON.parse(localStorage.getItem("admin"));
+const sessionKey = `lastSelectedEvent_${adminData2?.NGO_Information?.ngo_code}`;
+sessionStorage.setItem(sessionKey, eventId);
   fetchEventApplications(eventId);
   fetchEventDetails(eventId);
   setSelectedVolunteer(null);
@@ -419,7 +421,7 @@ const fetchEventApplications = async (eventId) => {
               <div className="w-full flex flex-wrap gap-6 mb-6">
                 {/* Applicant List - 2 columns out of 3 */}
                 <div className="flex-1 min-w-full bg-white rounded-lg shadow overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50 w-full">
+                  <div className="px-4 py-3 border-b border-gray-500 flex items-center justify-between rounded-lg bg-gray-50 w-full">
                     <h3 className="text-lg font-semibold text-emerald-900">
                       Applicant List
                     </h3>
@@ -478,7 +480,7 @@ const fetchEventApplications = async (eventId) => {
                     </div>
                   </div>
 
-                  <div className="bg-emerald-700 text-white font-semibold text-base grid grid-cols-3 px-4 py-3">
+                  <div className="bg-emerald-700 text-white font-semibold text-base rounded-lg grid grid-cols-3 px-4 py-3">
                     <div>User ID</div>
                     <div>Name</div>
                     <div>Email Address</div>
@@ -622,14 +624,16 @@ const fetchEventApplications = async (eventId) => {
                             <p className="text-sm text-gray-500 pl-5">Not specified</p>
                           </>
                         )}
-{/* NEW: Team Members Section */}
+{/* Team Members Section */}
 {selectedVolunteer.application_type === 'team' && selectedVolunteer.members_names && (
-  <>
-    <div className="mt-4 border-t pt-4 flex items-center justify-between mb-2">
-      <p className="font-bold text-base text-emerald-900">
-        Team Members
-      </p>
-      {/* Show button only if a justification exists */}
+  <div className="mt-4 border-t pt-4">
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+        <p className="font-bold text-base text-emerald-900">Team Members</p>
+        <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-300">
+          {selectedVolunteer.members_names.split('_').filter(n => n.trim()).length + 1} total
+        </span>
+      </div>
       {selectedVolunteer.justification && (
         <button
           onClick={() => setShowJustificationModal(true)}
@@ -639,12 +643,27 @@ const fetchEventApplications = async (eventId) => {
         </button>
       )}
     </div>
-    <ul className="list-disc pl-5 text-sm text-emerald-900 space-y-1">
-      {selectedVolunteer.members_names.split('_').map((name, idx) => (
-        name.trim() ? <li key={idx}>{name.trim()}</li> : null
+
+    <div className="flex flex-col gap-1">
+      {/* Leader */}
+      <div className="flex items-center justify-between py-1 px-3 rounded-lg bg-emerald-100">
+        <span className="text-base font-bold text-emerald-900">
+          {selectedVolunteer.firstname} {selectedVolunteer.lastname}
+        </span>
+        <span className="text-sm font-bold text-white bg-emerald-600 px-3 py-1 rounded-full tracking-widest uppercase">
+          Leader
+        </span>
+      </div>
+
+      {/* Other Members */}
+      {selectedVolunteer.members_names.split('_').filter(n => n.trim()).map((name, idx) => (
+        <div key={idx} className="flex items-center gap-3 py-1 px-3 rounded-lg bg-gray-50 border border-gray-100">
+          <span className="text-emerald-900 text-xs">#{idx + 1}</span>
+          <span className="text-sm text-emerald-900">{name.trim()}</span>
+        </div>
       ))}
-    </ul>
-  </>
+    </div>
+  </div>
 )}
                       </div>
 

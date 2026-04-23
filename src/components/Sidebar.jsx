@@ -63,11 +63,14 @@ function Sidebar({ handleAlert, onCollapseChange }) {
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {
-      localStorage.removeItem("admin");
-      localStorage.removeItem("isAuthenticated");
-      localStorage.removeItem("ngoLogo");
-      navigate("/login");
-    }
+  sessionStorage.clear();
+
+  localStorage.removeItem("admin");
+  localStorage.removeItem("isAuthenticated");
+  localStorage.removeItem("ngoLogo");
+
+  navigate("/login");
+}
   };
 
   // Toggle collapse with localStorage persistence
