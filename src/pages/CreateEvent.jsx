@@ -1953,22 +1953,22 @@ function CreateEvent() {
                   : formatDate(eventDate)}
               </p>
             </div>
-            {eventType === 'single' && (
+            {eventType === 'single' ? (
               <div>
                 <p className="text-sm text-emerald-600 font-medium">Event Time:</p>
                 <p className="text-gray-800">{startTime} — {endTime}</p>
               </div>
-            )}
+            ) : <div />}
             <div>
               <p className="text-sm text-emerald-600 font-medium">Location:</p>
               <p className="text-gray-800">{location}</p>
             </div>
-            {eventType === 'single' && (
+            {eventType === 'single' ? (
               <div>
                 <p className="text-sm text-emerald-600 font-medium">Call Time:</p>
                 <p className="text-gray-800">{callTime}</p>
               </div>
-            )}
+            ) : <div />}
             <div>
               <p className="text-sm text-emerald-600 font-medium">Volunteers Limit:</p>
               <p className="text-gray-800">{volunteersLimit}</p>

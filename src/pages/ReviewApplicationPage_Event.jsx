@@ -39,14 +39,18 @@ export default function ReviewApplicationEventPage() {
 
         if (error) {
           console.error("Error fetching events:", error);
-        } else {
-          setEvents(data);
-          if (data.length > 0) {
-            setSelectedEvent(data[0].event_id);
-            fetchEventDetails(data[0].event_id);
-            fetchEventApplications(data[0].event_id);
-          }
-        }
+       } else {
+  setEvents(data);
+  if (data.length > 0) {
+    const lastEventId = sessionStorage.getItem("lastSelectedEvent");
+    const eventExists = data.find(e => e.event_id === lastEventId);
+    const eventToLoad = eventExists ? lastEventId : data[0].event_id;
+
+    setSelectedEvent(eventToLoad);
+    fetchEventDetails(eventToLoad);
+    fetchEventApplications(eventToLoad);
+  }
+}
       }
     };
 
@@ -79,62 +83,85 @@ export default function ReviewApplicationEventPage() {
   }, [showCentroConfirm]);
 
 const fetchEventApplications = async (eventId) => {
-    // 1. Fetch individual applicants
-    const { data: individualData, error: individualError } = await supabase
-      .from("Event_User")
-      .select("user_id, event_id, status, days_available, time_availability, busy_hours")
-      .eq("event_id", eventId)
-      .eq("status", "PENDING");
+  // 🔍 Safety check
+  if (!eventId) {
+    console.error("❌ eventId is missing:", eventId);
+    return;
+  }
 
-    if (individualError) console.error("Error fetching individuals:", individualError);
+  const safeEventId = String(eventId).trim();
+  console.log("✅ Using eventId:", safeEventId);
 
-    // 2. Fetch team applicants 
-    // Note: This assumes you added a 'status' column to TeamJoining. 
-    // If you haven't, remove the .eq("status", "PENDING") line below.
-    const { data: teamData, error: teamError } = await supabase
-      .from("TeamJoining")
-      .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status, justification")
-      .eq("event_id", eventId)
-      .eq("status", "PENDING"); 
+  // 1. Fetch individual applicants
+  const { data: individualData, error: individualError } = await supabase
+    .from("Event_User")
+    .select("user_id, event_id, status, days_available, time_availability, busy_hours")
+    .eq("event_id", safeEventId)
+    .eq("status", "PENDING");
 
-    if (teamError) console.error("Error fetching teams:", teamError);
+  if (individualError) {
+    console.error("❌ Individual fetch error:", individualError);
+  }
 
-    // 3. Tag and merge the arrays
-    const individuals = (individualData || []).map(app => ({ ...app, application_type: 'individual' }));
-    const teams = (teamData || []).map(app => ({ ...app, application_type: 'team' }));
-    const allApplications = [...individuals, ...teams];
+  // 2. Fetch team applicants
+  const { data: teamData, error: teamError } = await supabase
+    .from("TeamJoining")
+    .select("user_id, event_id, members_names, days_available, time_availability, busy_hours, status, justification")
+    .eq("event_id", safeEventId)
+    .eq("status", "PENDING");
 
-    // 4. Fetch the LoginInformation for all applicants (Individuals and Team Leaders)
-    const volunteerApplications = await Promise.all(
-      allApplications.map(async (app) => {
-        const { data: volunteerData, error: userError } = await supabase
-          .from("LoginInformation")
-          .select("user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills")
-          .eq("user_id", app.user_id)
-          .single();
+  if (teamError) {
+    console.error("❌ Team fetch error (FULL):", JSON.stringify(teamError, null, 2));
+  }
 
-        if (userError) {
-          console.error("Error fetching volunteer info:", userError);
-          return null;
-        }
+  // 🧪 DEBUG: Check raw results
+  console.log("👤 Individuals:", individualData);
+  console.log("👥 Teams:", teamData);
 
-        return {
-          ...volunteerData,
-          application_id: app.user_id, // We use the leader's ID
-          event_id: app.event_id,
-          days_available: app.days_available,
-          time_availability: app.time_availability,
-          busy_hours: app.busy_hours,
-          application_type: app.application_type,
-          members_names: app.members_names || null, // Only exists for teams
-          justification: app.justification || null,
-        };
-      })
-    );
+  // 3. Merge
+  const individuals = (individualData || []).map(app => ({
+    ...app,
+    application_type: "individual"
+  }));
 
-    const filteredApplications = volunteerApplications.filter(app => app !== null);
-    setPendingApplications(filteredApplications);
-  };
+  const teams = (teamData || []).map(app => ({
+    ...app,
+    application_type: "team"
+  }));
+
+  const allApplications = [...individuals, ...teams];
+
+  // 4. Fetch user info
+  const volunteerApplications = await Promise.all(
+    allApplications.map(async (app) => {
+      const { data: volunteerData, error: userError } = await supabase
+        .from("LoginInformation")
+        .select("user_id, firstname, lastname, email, contact_number, profile_picture, gender, preferred_volunteering, preferred_skills")
+        .eq("user_id", app.user_id)
+        .single();
+
+      if (userError) {
+        console.error("❌ User fetch error:", userError);
+        return null;
+      }
+
+      return {
+        ...volunteerData,
+        application_id: app.user_id,
+        event_id: app.event_id,
+        days_available: app.days_available,
+        time_availability: app.time_availability,
+        busy_hours: app.busy_hours,
+        application_type: app.application_type,
+        members_names: app.members_names || null,
+        justification: app.justification || null,
+      };
+    })
+  );
+
+  const filteredApplications = volunteerApplications.filter(Boolean);
+  setPendingApplications(filteredApplications);
+};
 
   const fetchEventDetails = async (eventId) => {
     const { data, error } = await supabase
@@ -180,11 +207,12 @@ const fetchEventApplications = async (eventId) => {
 
 
   const handleSelectEvent = (eventId) => {
-    setSelectedEvent(eventId);
-    fetchEventApplications(eventId);
-    fetchEventDetails(eventId);
-    setSelectedVolunteer(null);
-  };
+  setSelectedEvent(eventId);
+  sessionStorage.setItem("lastSelectedEvent", eventId); // <-- add this
+  fetchEventApplications(eventId);
+  fetchEventDetails(eventId);
+  setSelectedVolunteer(null);
+};
 
   const handleReviewAiScheduling = async () => {
     if (!selectedVolunteer || !selectedEventDetails) return;
