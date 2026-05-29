@@ -50,7 +50,28 @@ module.exports = async (req, res) => {
         error: 'Missing required data: volunteerData and eventData are required' 
       });
     }
+// If it's a multiple event, immediately return a 100% score without calling OpenAI
+    if (eventData.event_type === 'multiple') {
+      const instantMatch = {
+        recommendedTimeSlot: "Multi-day Event Schedule",
+        duration: "Variable (Multi-day)",
+        matchingVolunteerTypes: volunteerData.preferred_volunteering 
+          ? volunteerData.preferred_volunteering.split(',').map(s => s.trim()) 
+          : ["General Volunteering"],
+        compatibilityScore: "100",
+        timeOverlapScore: "50",
+        proximityScore: "30",
+        skillMatchScore: "15",
+        dayMatchScore: "5",
+        reasoning: `Team/Multiple Event Application detected (Team size: ${volunteerData.team_size}). Compatibility automatically set to 100% to accommodate multi-day team deployment.`
+      };
 
+      return res.status(200).json({
+        success: true,
+        suggestions: JSON.stringify(instantMatch)
+      });
+    }
+    
     // Build the enhanced prompt for OpenAI with proximity-based scoring
 const prompt = `
       As an AI assistant for volunteer management, analyze the following volunteer and event information to provide PROXIMITY-BASED deployment suggestions with weighted scoring:

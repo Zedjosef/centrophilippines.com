@@ -1,6 +1,4 @@
 // src/pages/MultipleEventPage.jsx
-// ✅ UPDATED: Supports dynamic tasks 1–15 (from Task_Reports description_one to description_fifteen)
-// ✅ UPDATED: Reads task_one through task_fifteen from Task_Submissions
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";

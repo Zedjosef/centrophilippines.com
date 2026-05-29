@@ -953,6 +953,9 @@
   .border-emerald-200 {
     border-color: var(--color-emerald-200);
   }
+  .border-emerald-400 {
+    border-color: var(--color-emerald-400);
+  }
   .border-emerald-500 {
     border-color: var(--color-emerald-500);
   }
@@ -1120,6 +1123,9 @@
   }
   .bg-emerald-900 {
     background-color: var(--color-emerald-900);
+  }
+  .bg-gray-50 {
+    background-color: var(--color-gray-50);
   }
   .bg-gray-100 {
     background-color: var(--color-gray-100);

@@ -19,7 +19,24 @@ router.post('/generate-suggestions', async (req, res) => {
         error: 'Missing required data: volunteerData and eventData are required' 
       });
     }
+// Instantly return 100% compatibility for team/multi-day events
+    if (eventData.event_type === 'multiple') {
+      const instantMatch = {
+        recommendedTimeSlot: "Multi-day Event Schedule",
+        duration: "Variable (Multi-day)",
+        matchingVolunteerTypes: volunteerData.preferred_volunteering 
+          ? volunteerData.preferred_volunteering.split(',').map(s => s.trim()) 
+          : ["General Volunteering"],
+        compatibilityScore: "100",
+        // Notice this matches the simpler JSON schema requested in this specific file
+        reasoning: "Automatic 100% compatibility score for Multiple Event / Team Application to accommodate multi-day deployment without strict hour-by-hour time filtering."
+      };
 
+      return res.status(200).json({
+        success: true,
+        suggestions: JSON.stringify(instantMatch)
+      });
+    }
     // Build the prompt for OpenAI
     const prompt = `
       As an AI assistant for volunteer management, analyze the following volunteer and event information to provide STRICT time-based deployment suggestions:
