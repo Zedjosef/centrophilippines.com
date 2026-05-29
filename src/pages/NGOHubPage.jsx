@@ -583,7 +583,7 @@ const calculateNGOStats = async (ngoCode) => {
           ></div>
 
           <div 
-            className="relative bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 border-2 border-red-500 transform animate-scaleIn"
+            className="relative bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 border-2 border-gray-300 transform animate-scaleIn"
             style={{ 
               zIndex: 100000000,
               position: 'relative'
@@ -591,7 +591,7 @@ const calculateNGOStats = async (ngoCode) => {
           >
             <div className="flex justify-center mb-4">
               <div className="rounded-full flex items-center justify-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
+            <h2 className="text-xl font-bold text-red-600 mb-4">
               {step === 1
                 ? "Are you sure you want to remove?"
                 : "This action is irreversible!"}
@@ -643,22 +643,18 @@ const calculateNGOStats = async (ngoCode) => {
           ></div>
 
           <div 
-            className="relative bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 border-2 border-emerald-500 transform animate-scaleIn"
+            className="relative bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 border-2 border-gray-300 transform animate-scaleIn"
             style={{ 
               zIndex: 100000000,
               position: 'relative'
             }}
           >
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center">
-                <h2 className="text-2xl font-bold text-emerald-600 mb-4">
-              Register
-            </h2>
-              </div>
-            </div>
-            <p className="text-lg text-gray-700 mb-6">
+              <p className="text-lg text-gray-700 mb-4">
               Are you sure you want to proceed to add a new NGO to the system?
             </p>
+            </div>
+            
             <p className="text-sm text-gray-500 mb-6">
               You will be redirected to the NGO registration form.
             </p>

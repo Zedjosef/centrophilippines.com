@@ -3366,7 +3366,7 @@ if (!filteredEvents || filteredEvents.length === 0) {
                       <span className="px-3 py-1 bg-emerald-200 text-emerald-800 rounded-full text-sm">
                         {activeFilters.dateRange === "custom"
                           ? `${activeFilters.customDateFrom} to ${activeFilters.customDateTo}`
-                          : activeFilters.dateRange}
+                          : activeFilters.dateRange.charAt(0).toUpperCase() + activeFilters.dateRange.slice(1)}
                       </span>
                     )}
 

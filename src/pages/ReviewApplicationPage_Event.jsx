@@ -624,7 +624,7 @@ const fetchEventApplications = async (eventId) => {
                         <button
                           onClick={() => setShowCentroConfirm(true)}
                           disabled={isNavigating}
-                          className="w-full bg-orange-400 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 cursor-pointer disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center text-lg"
+                          className="w-full bg-orange-400 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 cursor-pointer disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center text-lg"
                         >
                           Review
                         </button>
@@ -657,15 +657,7 @@ const fetchEventApplications = async (eventId) => {
         >
           <div className="absolute inset-0 bg-black bg-opacity-60 backdrop-blur-sm"></div>
 
-          <div className="relative bg-white rounded-xl shadow-2xl p-6 w-96 max-w-md mx-4 transform transition-all scale-100 border-2 border-orange-400 z-50">
-            <div className="flex justify-center mb-4">
-              <div className="h-16 rounded-full bg-orange-400 w-full max-w-md flex items-center justify-center">
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Review
-                </h2>
-              </div>
-            </div>
-
+          <div className="relative bg-white rounded-xl shadow-2xl p-6 w-96 max-w-md w-full mx-4 transform transition-all scale-100 border border-gray-300 z-50">
             <div className="text-center">
               <p className="text-gray-600 mb-8 text-lg mt-4">
                 Proceed to review CENTROsuggests AI deployment recommendations

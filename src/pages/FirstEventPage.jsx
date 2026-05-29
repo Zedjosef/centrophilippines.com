@@ -198,30 +198,93 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, action, count }) {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-[9999] animate-fadeIn" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative bg-white rounded-xl shadow-2xl p-4 max-w-md w-full animate-scaleIn border-2 border-emerald-900">
-        <div className={`text-center w-full p-4 rounded-xl font-montserrat font-bold text-2xl ${action === "Approve" ? "bg-emerald-100 text-emerald-900" : "bg-red-100 text-red-900"}`}>
-          {action === "Approve" ? "Approval" : "Rejection"}
-        </div>
-        <div className="p-8 text-center">
-          <p className="text-gray-700 text-lg leading-relaxed mb-8">
-            Are you sure you want to <br />{action} {count} volunteer{count > 1 ? "s" : ""}?
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={onConfirm} className={`w-full sm:w-auto px-6 py-3 rounded-xl text-lg font-semibold text-white shadow-md cursor-pointer ${action === "Approve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"} transition-all duration-200 hover:scale-105 active:scale-95`}>
-              {action}
-            </button>
-            <button onClick={onClose} className="w-full sm:w-auto px-6 py-3 rounded-xl text-lg font-semibold cursor-pointer bg-gray-200 text-gray-800 border border-gray-300 hover:bg-gray-300 transition-all duration-200 hover:scale-105 active:scale-95">
-              Cancel
-            </button>
-          </div>
-        </div>
+return (
+  <div
+    className="fixed inset-0 flex items-center justify-center z-[9999] animate-fadeIn"
+    onClick={(e) => e.target === e.currentTarget && onClose()}
+  >
+    {/* Overlay */}
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+
+    {/* Modal */}
+    <div
+      className="relative bg-white rounded-2xl shadow-2xl border border-gray-300 
+      p-8 max-w-md w-full mx-4 animate-scaleIn"
+    >
+      {/* Message */}
+      <div className="text-center mb-8">
+        <p className="text-xl text-gray-700 leading-relaxed">
+          Are you sure you want to <br />
+          <span
+  className={`font-bold ${
+    action === "Approve"
+      ? "text-emerald-700"
+      : "text-red-600"
+  }`}
+>
+  {action}
+</span>
+          {" "}
+          {count} volunteer{count > 1 ? "s" : ""}?
+        </p>
       </div>
-      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes scaleIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}.animate-fadeIn{animation:fadeIn 0.2s ease-out}.animate-scaleIn{animation:scaleIn 0.2s ease-out}`}</style>
+
+      {/* Buttons */}
+      <div className="flex gap-4">
+        {/* Cancel */}
+        <button
+          onClick={onClose}
+          className="flex-1 py-3 rounded-xl border border-gray-300 
+          bg-gray-100 text-gray-700 font-semibold
+          hover:bg-gray-200 transition-all duration-200 cursor-pointer"
+        >
+          Cancel
+        </button>
+
+        {/* Confirm */}
+        <button
+          onClick={onConfirm}
+          className={`flex-1 py-3 rounded-xl text-white font-bold 
+          shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer
+          ${
+            action === "Approve"
+              ? "bg-emerald-600 hover:bg-emerald-700"
+              : "bg-red-500 hover:bg-red-600"
+          }`}
+        >
+          {action}
+        </button>
+      </div>
     </div>
-  );
+
+    {/* Animation */}
+    <style>{`
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .animate-fadeIn {
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .animate-scaleIn {
+        animation: scaleIn 0.2s ease-out;
+      }
+    `}</style>
+  </div>
+);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -268,18 +331,18 @@ function TaskListPanel({ eventId, eventTitle, taskReport, volunteers, onSelectTa
     }))
     .filter((t) => taskReport?.[t.descKey]); // only show tasks that exist
 
-  // Per-task stats: count how many volunteers submitted / approved / rejected / pending
+  // Per-task stats: count how many volunteers submitted / Approved / rejected / pending
   const getTaskStats = (taskKey) => {
-    let pending = 0, approved = 0, rejected = 0, notSubmitted = 0;
+    let pending = 0, Approved = 0, rejected = 0, notSubmitted = 0;
     volunteers.forEach((v) => {
       const fileUrl = v.submission?.[taskKey];
       const status  = v.submission?.status;
       if (!fileUrl || !fileUrl.trim()) { notSubmitted++; return; }
-      if (status === "ApproveD") approved++;
+      if (status === "ApproveD") Approved++;
       else if (status === "RejectED") rejected++;
       else pending++;
     });
-    return { pending, approved, rejected, notSubmitted };
+    return { pending, Approved, rejected, notSubmitted };
   };
 
   return (
@@ -348,7 +411,7 @@ function TaskListPanel({ eventId, eventTitle, taskReport, volunteers, onSelectTa
                         <Clock className="w-3 h-3" />{stats.pending} pending
                       </span>
                       <span className="flex items-center gap-1 text-emerald-700">
-                        <CheckCircle className="w-3 h-3" />{stats.approved} approved
+                        <CheckCircle className="w-3 h-3" />{stats.Approved} Approved
                       </span>
                       <span className="flex items-center gap-1 text-red-500">
                         <XCircle className="w-3 h-3" />{stats.rejected} rejected

@@ -623,15 +623,14 @@ const VolunteersPage = () => {
           ></div>
 
           <div
-            className="relative bg-white rounded-lg shadow-2xl border-2 border-red-700 p-8 max-w-md w-full mx-4 transform animate-scaleIn"
+            className="relative bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-8 max-w-md w-full mx-4 transform animate-scaleIn"
             style={{
               zIndex: 100000000,
               position: 'relative'
             }}
           >
             <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-4">
-                <h3 className="text-2xl font-bold text-red-700">Remove</h3>
+              <div className="mx-auto rounded-xl flex items-center justify-center mb-4">
               </div>
               <p className="text-base text-gray-700">
                 Are you sure you want to remove <br />
@@ -674,7 +673,7 @@ const VolunteersPage = () => {
               />
             </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className=" border rounded-lg p-4 mb-6">
               <p className="text-red-700 text-sm">
                 <span className="font-bold">Warning:</span> This action cannot be undone. The volunteer will be notified via email with the reason you provided.
               </p>

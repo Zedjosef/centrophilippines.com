@@ -656,16 +656,14 @@ export default function ReviewApplicationPage() {
           ></div>
 
           <div
-            className="relative bg-white rounded-lg shadow-2xl border-2 border-emerald-900 p-8 max-w-md w-full mx-4 transform animate-scaleIn"
+            className="relative bg-white rounded-2xl shadow-2xl border border-gray-300 p-8 max-w-md w-full mx-4 transform animate-scaleIn"
             style={{
               zIndex: 100000000,
               position: 'relative'
             }}
           >
+  
             <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
-                <h3 className="text-2xl font-bold text-emerald-900 mb-2">Application</h3>
-              </div>
               <p className="text-lg text-gray-700">
                 Are you sure you want to accept <br /><span className="font-bold text-emerald-900">{selectedVolunteer.firstname} {selectedVolunteer.lastname}</span>'s application?
               </p>
@@ -687,7 +685,7 @@ export default function ReviewApplicationPage() {
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6">
+            <div className="border border-emerald-200 rounded-lg p-4 mb-6">
               <p className="text-emerald-800 text-sm">
                 <span className="font-bold">Note:</span> This volunteer will be added to your organization and will have access to your events and tasks.
               </p>
@@ -733,16 +731,13 @@ export default function ReviewApplicationPage() {
           ></div>
 
           <div
-            className="relative bg-white rounded-lg shadow-2xl border-2 border-red-700 p-8 max-w-md w-full mx-4 transform animate-scaleIn"
+            className="relative bg-white rounded-2xl shadow-2xl border border-gray-300 p-8 max-w-md w-full mx-4 transform animate-scaleIn"
             style={{
               zIndex: 100000000,
               position: 'relative'
             }}
           >
             <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <h3 className="text-2xl font-bold text-red-700">Reject</h3>
-              </div>
               <p className="text-lg text-gray-700">
                 Are you sure you want to reject <br /> <span className="font-bold text-emerald-700">{selectedVolunteer.firstname} {selectedVolunteer.lastname}</span>'s application?
               </p>

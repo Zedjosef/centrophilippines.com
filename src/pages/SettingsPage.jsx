@@ -415,7 +415,7 @@ const SettingsPage = () => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start w-full">
       {/* Logo Section */}
       <div className="col-span-1 flex flex-col items-center">
-        <div className="rounded-xl border-4 border-emerald-700/70 w-full flex items-center justify-center bg-white min-h-[220px] p-4">
+        <div className="rounded-xl border-4 border-emerald-700 w-full flex items-center justify-center bg-white min-h-[220px] p-4">
           {ngoInfo.ngo_logo ? (
             <img
               src={ngoInfo.ngo_logo}
@@ -712,14 +712,7 @@ const SettingsPage = () => {
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative bg-white rounded-xl shadow-2xl p-8 w-96 max-w-md mx-4 transform animate-scaleIn border-2 border-emerald-700">
-            <div className="flex justify-center mb-4">
-              <div className="rounded-full flex items-center justify-center">
-                <h2 className="text-3xl font-bold text-emerald-700 mb-2 font-montserrat">
-                  Edit 
-                </h2>
-              </div>
-            </div>
+          <div className="relative bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4 transform animate-scaleIn border-2 border-gray-300">
 
             <div className="text-center">
               <p className="text-gray-600 mb-8 text-lg mt-4 font-montserrat">
@@ -754,15 +747,7 @@ const SettingsPage = () => {
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative bg-white rounded-xl shadow-2xl p-8 w-96 max-w-md mx-4 transform animate-scaleIn border-2 border-emerald-700">
-            <div className="flex justify-center mb-4">
-              <div className=" flex items-center justify-center">
-                <h2 className="text-3xl font-bold text-emerald-700 mb-2 font-montserrat">
-                  Update
-                </h2>
-              </div>
-            </div>
-
+          <div className="relative bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4 transform animate-scaleIn border-2 border-gray-300">
             <div className="text-center">
               <p className="text-gray-600 mb-8 text-lg mt-4 font-montserrat">
                 Please select a new logo file. Supported formats: JPEG, PNG, GIF, WebP. Maximum file size: 5MB.
